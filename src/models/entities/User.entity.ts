@@ -49,10 +49,11 @@ export class User extends BaseEntity {
     resetToken: string
 
     @OneToOne(() => Profile, (profile) => profile.user,{cascade:true})
-    @JoinColumn({name: 'profile_id'})
+    @JoinColumn({name: 'profileId'})
     profile: Profile
 
-    @OneToMany(() => Cart, (cart) => cart.user)
+    @OneToOne(() => Cart, (cart) => cart.user,{cascade:true})
+    @JoinColumn({name: 'cartId'})
     cart: Cart
 
     @OneToMany(() => Order, (order) => order.user)

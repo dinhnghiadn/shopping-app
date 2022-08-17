@@ -18,8 +18,8 @@ export const databaseConnection = new DatabaseConnection()
 databaseConnection.initialize()
     .then((res) => {
             const initialize = wrap(databaseConnection, express.Router())
-            app.use('/user', initialize.userRoutes)
-            app.use('/product', initialize.productRoutes)
+            app.use('', initialize)
+
             app.listen(port, () => {
                 console.log(`Server is up on ${port}! `)
             })

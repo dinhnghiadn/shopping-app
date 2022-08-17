@@ -18,12 +18,13 @@ import {NextFunction, Request, Response} from "express";
 import {EditProfile} from "../../models/dto/edit-profile";
 import {Profile} from "../../models/entities/Profile.entity";
 import {plainToInstance} from "class-transformer";
+import {Cart} from "../../models/entities/Cart.entity";
 
 const {HOST, PORT, JWT_VERIFY, JWT_RESET, JWT_SECRET} = process.env
 
 export class UserService {
 
-    constructor(public userRepository: Repository<User>) {
+    constructor(public userRepository: Repository<User>, public cartRepository: Repository<Cart>) {
     }
 
     async createUser(data: SignUp): Promise<User> {

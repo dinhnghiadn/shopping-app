@@ -1,4 +1,5 @@
 import {
+    AfterInsert, AfterUpdate,
     BaseEntity,
     Column,
     Entity,
@@ -18,7 +19,15 @@ export class Category extends BaseEntity {
     @Column()
     description: string
 
+    @Column()
+    productQuantities: number
+
     @ManyToMany(()=>Product,(product) => product.categories)
     products: Product[]
 
+    @AfterInsert()
+    @AfterUpdate()
+    getProductQuantity(): void {
+        this.productQuantities= this.products.length
+    }
 }

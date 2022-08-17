@@ -38,7 +38,7 @@ export enum order_status {
     Completed = "COMPLETED",
 }
 
-export enum product_sort {
-    quantity,
-    name
-}
+// export enum product_sort {
+//     quantity,
+//     name
+// }

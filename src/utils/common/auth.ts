@@ -13,7 +13,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction, user
         const username = (decode as JwtPayload)['username'];
         const user = await userRepository.findOneOrFail({
             where: {username},
-            relations: {profile: true, orders: true}
+            relations: {profile: true, orders: true,cart:true}
         })
         req.body.token = token
         req.body.user = user

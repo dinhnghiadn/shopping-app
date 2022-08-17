@@ -7,30 +7,36 @@ import {DatabaseConnection} from "../database/db";
 import {ProductService} from "../../services/product/product.service";
 import {ProductController} from "../../services/product/product.controller";
 import {ProductRoutes} from "../../services/product/product.routes";
+import {CategoryService} from "../../services/category/category.service";
+import {CategoryController} from "../../services/category/category.controller";
+import {CategoryRoutes} from "../../services/category/category.routes";
+import {CartService} from "../../services/cart/cart.service";
+import {CartController} from "../../services/cart/cart.controller";
+import {CartRoutes} from "../../services/cart/cart.routes";
 
 
-// export const wrapRepositories = (dataSource:DatabaseConnection) => {
-//     const productRepository = dataSource.getRepository('Product')
-//     const userRepository = dataSource.getRepository('User')
-//     return {
-//         productRepository,
-//         userRepository
-//     }
-// }
 
 export const wrap = (dataSource: DatabaseConnection, router: Router) => {
 
+    //Cart
+    const cartService = new CartService(dataSource.getRepository('Cart'),dataSource.getRepository('User'))
+    const cartController = new CartController(cartService)
+    new CartRoutes(router,cartController).getRoutes()
+
     //Product
-    const productRepository = dataSource.getRepository('Product')
-    const productService = new ProductService(productRepository)
+    const productService = new ProductService(dataSource.getRepository('Product'))
     const productController = new ProductController(productService)
-    const productRoutes = new ProductRoutes(router, productController).getRoutes()
+    new ProductRoutes(router,productController).getRoutes()
+
+    //Category
+    const categoryService = new CategoryService(dataSource.getRepository('Category'))
+    const categoryController = new CategoryController(categoryService)
+    new CategoryRoutes(router, categoryController).getRoutes()
 
     //User
-    const userRepository = dataSource.getRepository('User')
-    const userService = new UserService(userRepository)
+    const userService = new UserService(dataSource.getRepository('User'),dataSource.getRepository('Cart'))
     const userController = new UserController(userService)
-    const userRoutes = new UserRoutes(router, userController).getUserRoutes()
+    new UserRoutes(router, userController).getUserRoutes()
 
-    return {userRoutes, productRoutes}
+    return router
 }

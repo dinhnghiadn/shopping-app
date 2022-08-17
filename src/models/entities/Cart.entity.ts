@@ -2,7 +2,7 @@ import {
     AfterInsert, AfterUpdate,
     BaseEntity, Column,
     CreateDateColumn,
-    Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne,
+    Entity, OneToMany, OneToOne,
     PrimaryGeneratedColumn, UpdateDateColumn
 } from "typeorm";
 import {User} from "./User.entity";
@@ -25,7 +25,7 @@ export class Cart extends BaseEntity {
     @OneToOne(() => User, (user) => user.cart)
     user: User
 
-    @OneToMany(()=>CartProduct, (cartProduct) => cartProduct.cart)
+    @OneToMany(()=>CartProduct, (cartProduct) => cartProduct.cart,{eager:true})
     products: CartProduct[]
 
     @AfterInsert()

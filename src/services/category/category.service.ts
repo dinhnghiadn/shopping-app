@@ -1,24 +1,22 @@
 import {Repository} from "typeorm";
-import {Product} from "../../models/entities/Product.entity";
-import {User} from "../../models/entities/User.entity";
-import {ErrorResponse, SuccessResponse} from "../../utils/common/interfaces";
+import {Category} from "../../models/entities/Category.entity";
 import {Request} from "express";
+import {ErrorResponse, SuccessResponse} from "../../utils/common/interfaces";
 
-export class ProductService {
-    constructor(public productRepository: Repository<Product>) {
+
+export class CategoryService {
+    constructor(public categoryRepository: Repository<Category>) {
     }
 
     async getAll(req: Request): Promise<SuccessResponse | ErrorResponse> {
         const orderBy: string = req.query.sort as string
-        const category: string = req.query.category as string
-        let listProduct: Product[]
+        let listCategory: Category[]
         try {
-            listProduct = await this.productRepository.createQueryBuilder('product')
-                .leftJoinAndSelect("product.categories", "category")
-                .where((category) ? 'category.name LIKE :category' : 'TRUE', {category: `%${category}%`})
-                .orderBy((orderBy) ? `product.${orderBy}` : 'TRUE', "DESC")
+            listCategory = await this.categoryRepository.createQueryBuilder('category')
+                .leftJoinAndSelect("category.products", "product")
+                .orderBy((orderBy) ? `category.${orderBy}` : 'TRUE', "DESC")
                 .getMany()
-            if (listProduct.length === 0) {
+            if (listCategory.length === 0) {
                 return {
                     'success': true,
                     'status': 204,
@@ -28,8 +26,33 @@ export class ProductService {
             return {
                 'success': true,
                 'status': 200,
-                'message': 'Get list products successfully!',
-                resources: listProduct
+                'message': 'Get list categories successfully!',
+                resources: listCategory
+            }
+        } catch (e) {
+            return {
+                'success': false,
+                'status': 400,
+                'message': 'Bad request!'
+            }
+        }
+    }
+    async getOne(req: Request):Promise<SuccessResponse | ErrorResponse> {
+        const id = parseInt(req.query.id as string)
+        try {
+            const category = await this.categoryRepository.findOne({where:{id:id},relations:{products:true}})
+            if (!category){
+                return {
+                    'success': false,
+                    'status': 404,
+                    'message': 'Category not found!'
+                }
+            }
+            return {
+                'success': true,
+                'status': 200,
+                'message': 'Get category detail successfully!',
+                resource:category
             }
         } catch (e) {
             return {
@@ -40,29 +63,4 @@ export class ProductService {
         }
     }
 
-    async getOne(req: Request):Promise<SuccessResponse | ErrorResponse> {
-        const id = parseInt(req.query.id as string)
-        try {
-            const product = await this.productRepository.findOne({where:{id:id}})
-            if (!product){
-                return {
-                    'success': false,
-                    'status': 404,
-                    'message': 'Product not found!'
-                }
-            }
-            return {
-                'success': true,
-                'status': 200,
-                'message': 'Get product detail successfully!',
-                resource:product
-            }
-        } catch (e) {
-            return {
-                'success': false,
-                'status': 400,
-                'message': 'Bad request!'
-            }
-        }
-    }
 }

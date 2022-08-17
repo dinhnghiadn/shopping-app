@@ -7,7 +7,9 @@ export class ProductRoutes {
     }
 
     getRoutes(): Router {
-        this.router.post('/list', (req: Request, res: Response) => this.productController.getAll(req, res))
+
+        this.router.get('/product/list', (req: Request, res: Response) => this.productController.getAll(req, res))
+        this.router.get('/product/detail', (req: Request, res: Response) => this.productController.getOne(req, res))
         return this.router
     }
 }
