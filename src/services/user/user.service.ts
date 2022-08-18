@@ -108,7 +108,7 @@ export class UserService {
     }
 
     async login(data: SignIn): Promise<SuccessResponse | ErrorResponse> {
-        const user = await this.findOne(data.username, 'username')
+        let user = await this.findOne(data.username, 'username')
         if (!user || user.status === user_status.NotVerified) {
             return {
                 'success': false,
@@ -117,6 +117,8 @@ export class UserService {
                     ' again!'
             }
         }
+        user.lastLogin = new Date()
+        user = await this.userRepository.save(user)
         const result = await bcrypt.compare(data.password, user.password)
         if (!result) {
             return {
@@ -209,7 +211,6 @@ export class UserService {
     async editProfile(data: Profile, user: User): Promise<SuccessResponse | ErrorResponse> {
         try {
             user.profile = plainToInstance(Profile, data)
-            console.log(user.profile)
             await this.userRepository.save(user)
             return {
                 'success': true,

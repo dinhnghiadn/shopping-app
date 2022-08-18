@@ -1,6 +1,6 @@
 import {
-    AfterInsert, AfterUpdate,
-    BaseEntity, Column,
+    AfterInsert, AfterLoad, AfterUpdate,
+    BaseEntity, BeforeInsert, BeforeUpdate, Column,
     CreateDateColumn,
     Entity, OneToMany, OneToOne,
     PrimaryGeneratedColumn, UpdateDateColumn
@@ -28,11 +28,14 @@ export class Cart extends BaseEntity {
     @OneToMany(()=>CartProduct, (cartProduct) => cartProduct.cart,{eager:true})
     products: CartProduct[]
 
-    @AfterInsert()
-    @AfterUpdate()
+    @BeforeInsert()
+    @BeforeUpdate()
     getTotalAmount(): void {
         // this.totalAmount = this.products.reduce((n, {bulkPrice}) => n + bulkPrice, 0)
-        this.totalAmount = this.products.reduce((a,b) => a + b.bulkPrice,0)
+        if (this.products){
+            this.totalAmount = this.products.reduce((a,b) => a + b.bulkPrice,0)
+        }
+        else this.totalAmount = 0
 
     }
 }

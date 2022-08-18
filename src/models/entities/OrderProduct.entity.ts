@@ -1,6 +1,6 @@
 import {
     AfterInsert, AfterUpdate,
-    BaseEntity,
+    BaseEntity, BeforeInsert, BeforeUpdate,
     Column,
     Entity,
     ManyToOne,
@@ -23,7 +23,7 @@ export class OrderProduct extends BaseEntity{
     @ManyToOne(() => Order, (order) => order.products)
     order: Order
 
-    @ManyToOne(() => Product, (product) => product.orders)
+    @ManyToOne(() => Product, (product) => product.orders,{eager:true})
     product: Product
 
     @Column()
@@ -35,8 +35,8 @@ export class OrderProduct extends BaseEntity{
     @Column()
     bulkPrice: number
 
-    @AfterInsert()
-    @AfterUpdate()
+    @BeforeInsert()
+    @BeforeUpdate()
     getBulkPrice() : void {
         this.individualPrice = this.product.price
         this.bulkPrice = this.quantity * this.individualPrice

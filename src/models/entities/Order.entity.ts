@@ -1,6 +1,6 @@
 import {
     AfterInsert, AfterUpdate,
-    BaseEntity, Column,
+    BaseEntity, BeforeInsert, BeforeUpdate, Column,
     CreateDateColumn,
     Entity, JoinTable, ManyToMany, ManyToOne, OneToMany,
     PrimaryGeneratedColumn, UpdateDateColumn
@@ -15,19 +15,19 @@ export class Order extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column({type: 'enum', enum: payment_method})
+    @Column({type: 'enum', enum: payment_method,default:payment_method.Cash})
     paymentMethod: payment_method
 
     @Column({type: 'enum', enum: order_status, default: order_status.Pending})
     status: order_status
 
-    @Column()
+    @Column({nullable:true})
     orderDate: Date
 
-    @Column()
+    @Column({nullable:true})
     paymentDate: Date
 
-    @Column()
+    @Column({nullable:true})
     completedDate: Date
 
     @Column()
@@ -36,14 +36,16 @@ export class Order extends BaseEntity {
     @ManyToOne(() => User, (user) => user.orders)
     user: User
 
-    @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.order)
+    @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.order,{eager:true})
     products: OrderProduct[]
 
-    @AfterInsert()
-    @AfterUpdate()
+    @BeforeInsert()
+    @BeforeUpdate()
     getTotalAmount(): void {
         // this.totalAmount = this.products.reduce((n, {bulkPrice}) => n + bulkPrice, 0)
-        this.totalAmount = this.products.reduce((a,b) => a + b.bulkPrice,0)
-
+        if (this.products){
+            this.totalAmount = this.products.reduce((a,b) => a + b.bulkPrice,0)
+        }
+        else this.totalAmount = 0
     }
 }

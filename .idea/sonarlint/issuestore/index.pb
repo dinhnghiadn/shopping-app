@@ -1,8 +1,4 @@
 
-Z
-*src/models/entities/OrderProduct.entity.ts,b\d\bd071632a2e49b4a82de8d305acaec410c647af7
-S
-#src/models/entities/Order.entity.ts,b\b\bbc3322136404e8528a689940983efd398c37b23
 =
 tsconfig.json,6\1\61ebb9fd6e8cf9082658121d5d81e297791dacd0
 S
@@ -19,17 +15,25 @@ I
 src/utils/common/email.ts,3\4\349f27ae643f93cb41793ef2899efcd484d0a297
 <
 package.json,7\0\7030d0b2f71b999ff89a343de08c414af32fc93a
-Q
-!src/models/dto/forgot-password.ts,6\9\696a8e43ded86193e0c8d91f8d8bc1842698fbbe
-N
-src/models/dto/edit-profile.ts,7\f\7fee3d09a0bdb74b679ccf4d99c65a2a069a51db
 U
 %src/models/entities/Profile.entity.ts,4\9\49d2fd81ea5fe6cdbfbfca096e7cc982cf8d5e8e
 H
 src/utils/common/enum.ts,5\d\5d6ceb76d46a78bb6736382e342f4cf909180b61
-T
-$src/services/user/user.controller.ts,6\b\6bc1fee69adeea74f61da7bbd52d56862571d5cf
-U
-%src/models/entities/Product.entity.ts,2\4\2407657930abca8de185c5709fbbeb0dd0ced03b
 N
 src/utils/common/interfaces.ts,0\b\0bb49111a857f6d99c9e838481aeddf2fe8373d8
+W
+'src/services/product/product.service.ts,2\4\24a726dee9198924ec657bb1c13685844e1cf86b
+\
+,src/services/category/category.controller.ts,c\5\c5cae1503dbf7513ddd24feea7369807ee172d2e
+X
+(src/services/category/category.routes.ts,0\3\039f45e5d6fc476fe1c49656a5fc126edd6c3dcb
+<
+src/index.ts,c\5\c5fb850250c7443c48a6c12b5cf6916773da31f1
+V
+&src/models/entities/Category.entity.ts,a\d\ad339293f5324587ad3b2fc901c6fac1aa241477
+V
+&src/services/product/product.routes.ts,3\2\32d067deddef273025fead2441437892c328ba6c
+P
+ src/services/user/user.routes.ts,b\2\b2addce736ed7c4c2c265b2279b8a8898f9f99d2
+Z
+*src/services/product/product.controller.ts,8\3\8357e8c08a2413291aa928b95d88c24bdaa9ce4f

@@ -45,18 +45,18 @@ export class User extends BaseEntity {
     role: role
 
     @Exclude()
-    @Column("varchar", { length: 500 })
+    @Column("varchar", { length: 500 ,nullable:true})
     resetToken: string
 
     @OneToOne(() => Profile, (profile) => profile.user,{cascade:true})
     @JoinColumn({name: 'profileId'})
     profile: Profile
 
-    @OneToOne(() => Cart, (cart) => cart.user,{cascade:true})
+    @OneToOne(() => Cart, (cart) => cart.user,{cascade:true,eager:true})
     @JoinColumn({name: 'cartId'})
     cart: Cart
 
-    @OneToMany(() => Order, (order) => order.user)
+    @OneToMany(() => Order, (order) => order.user,{cascade:true,eager:true})
     orders: Order[]
 
     @CreateDateColumn()
