@@ -1,44 +1,40 @@
-export enum role {
+export enum Role {
     User = "USER",
     Admin = "ADMIN"
 }
-export enum gender {
+export enum Gender {
     Male = "MALE",
     Female = "FEMALE"
 }
-export enum owner {
+export enum Owner {
     User = "USER",
     Product = "PRODUCT",
     CATEGORY = "CATEGORY",
 
 }
 
-export enum image_type {
-    Thumbnail = "THUMBNAIL",
-    Avatar = "AVATAR",
-    OTHERS = "OTHERS",
 
-}
-
-export enum user_status {
+export enum UserStatus {
     Active= "ACTIVE",
-    NotVerified = "NOT VERIFIED",
+    NotVerified = "NOT_VERIFIED",
     Inactive= "INACTIVE",
     Blocked = "BLOCKED",
 
 }
 
-export enum payment_method {
+export enum PaymentMethod {
     Cash = "CASH",
     Visa = "VISA"
 }
 
-export enum order_status {
+export enum OrderStatus {
+    NotConfirmed = "NOT_CONFIRMED",
     Pending= "PENDING",
     Completed = "COMPLETED",
 }
 
-// export enum product_sort {
-//     quantity,
-//     name
-// }
+export enum PaymentStatus {
+    Pending= "PENDING",
+    Success = "SUCCESS",
+}
+

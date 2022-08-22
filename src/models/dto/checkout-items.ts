@@ -6,9 +6,5 @@ export class CheckoutItems {
     @IsNotEmpty()
     readonly productId: number;
 
-    @IsDefined()
-    @IsNotEmpty()
-    readonly checkOut: boolean;
-
 
 }

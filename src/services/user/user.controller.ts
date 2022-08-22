@@ -8,6 +8,7 @@ import {ForgotPassword} from "../../models/dto/forgot-password";
 import {EditProfile} from "../../models/dto/edit-profile";
 
 
+
 export class UserController {
     constructor(public userService: UserService) {
     }
@@ -78,5 +79,16 @@ export class UserController {
         const result = await this.userService.editProfile(profile,user)
         res.status(result.status).json(result)
         return
+    }
+
+    async uploadAvatar(req:Request, res: Response): Promise<void>{
+        const user = req.body.user
+        console.log(req.body)
+        if(!req.file) {
+            res.status(400).send("Error: No files found")
+            return
+        }
+        const result = await this.userService.uploadAvatar(req,user)
+        res.status(result.status).json(result)
     }
 }

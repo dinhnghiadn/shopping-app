@@ -1,5 +1,5 @@
 import {BaseEntity, Column, Entity, PrimaryGeneratedColumn} from "typeorm";
-import {image_type, owner} from "../../utils/common/enum";
+import {Owner} from "../../utils/common/enum";
 
 @Entity('images')
 export class Image extends BaseEntity {
@@ -12,8 +12,8 @@ export class Image extends BaseEntity {
     @Column()
     ownerId: number
 
-    @Column({type: 'enum', enum: owner})
-    belongTo: owner
+    @Column({type: 'enum', enum: Owner})
+    belongTo: Owner
 
     @Column({default:true})
     primary: boolean

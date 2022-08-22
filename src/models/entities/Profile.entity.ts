@@ -1,12 +1,12 @@
 import {
     BaseEntity,
     Column,
-    Entity,
+    Entity, JoinColumn,
     OneToOne,
     PrimaryGeneratedColumn
 } from "typeorm";
 import {IsEmail} from "class-validator";
-import { gender } from "../../utils/common/enum";
+import { Gender } from "../../utils/common/enum";
 import {User} from "./User.entity";
 
 @Entity('profiles')
@@ -23,15 +23,16 @@ export class Profile extends BaseEntity {
     @Column()
     birthday: string
 
-    @Column({type: 'enum', enum: gender})
-    gender: gender
+    @Column({type: 'enum', enum: Gender})
+    gender: Gender
 
 
     @Column()
     address: string
 
 
-    @OneToOne(() => User, (user) => user.profile)
+    @OneToOne(() => User, (user) => user.profile,{onDelete:'CASCADE'})
+    @JoinColumn({name: 'userId'})
     user: User
 
 }

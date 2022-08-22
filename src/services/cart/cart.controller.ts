@@ -1,6 +1,7 @@
 import {CartService} from "./cart.service";
 import {Request, Response} from "express";
 import {CheckoutItems} from "../../models/dto/checkout-items";
+import { PaymentMethod} from "../../utils/common/enum";
 export class CartController {
     constructor(public cartService: CartService) {
     }
@@ -25,8 +26,9 @@ export class CartController {
 
     async checkOut(req: Request, res: Response): Promise<void>{
         const {user,token,...data} = req.body
-        const dataArray : CheckoutItems[] = Object.values(data)
-        const result = await this.cartService.checkOut(dataArray,user)
+        const dataArray : CheckoutItems[] = data.checkoutProduct
+        const paymentMethod : PaymentMethod = data.paymentMethod
+        const result = await this.cartService.checkOut(dataArray,paymentMethod,user)
         res.status(result.status).json(result)
     }
 }

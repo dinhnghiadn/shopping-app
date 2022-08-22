@@ -1,10 +1,8 @@
-import {Column} from "typeorm";
-import { gender } from "../../utils/common/enum"
+
+import {Gender} from "../../utils/common/enum"
 import {
-    IsDate,
     IsDateString,
     IsDefined,
-    IsEmpty,
     IsEnum,
     IsNotEmpty
 } from "class-validator";
@@ -23,8 +21,8 @@ export class EditProfile {
     birthday: string
 
     @IsDefined()
-    @IsEnum(gender)
-    gender: gender
+    @IsEnum(Gender)
+    gender: Gender
 
     @IsDefined()
     @IsNotEmpty()

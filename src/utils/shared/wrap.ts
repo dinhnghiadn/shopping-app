@@ -13,10 +13,15 @@ import {CategoryRoutes} from "../../services/category/category.routes";
 import {CartService} from "../../services/cart/cart.service";
 import {CartController} from "../../services/cart/cart.controller";
 import {CartRoutes} from "../../services/cart/cart.routes";
+import {OrderService} from "../../services/order/order.service";
+import {OrderController} from "../../services/order/order.controller";
+import {OrderRoutes} from "../../services/order/order.routes";
 
 
 
 export const wrap = (dataSource: DatabaseConnection, router: Router) => {
+
+
 
     //Cart
     const cartService = new CartService(dataSource.getRepository('Cart'),
@@ -29,6 +34,13 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
     const cartController = new CartController(cartService)
     new CartRoutes(router,cartController).getRoutes()
 
+    //Cron jobs
+    cartService.startCronJob()
+
+    //Order
+    const orderService = new OrderService(dataSource.getRepository('Order'),dataSource.getRepository('User'))
+    const orderController = new OrderController(orderService)
+    new OrderRoutes(router,orderController).getOrderRoutes()
     //Product
     const productService = new ProductService(dataSource.getRepository('Product'))
     const productController = new ProductController(productService)
@@ -41,6 +53,7 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
 
     //User
     const userService = new UserService(dataSource.getRepository('User'),
+        dataSource.getRepository('Image'),
         dataSource.getRepository('Cart'))
     const userController = new UserController(userService)
     new UserRoutes(router, userController).getUserRoutes()

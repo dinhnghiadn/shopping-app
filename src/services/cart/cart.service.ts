@@ -9,6 +9,9 @@ import {Product} from "../../models/entities/Product.entity";
 import {CheckoutItems} from "../../models/dto/checkout-items";
 import {Order} from "../../models/entities/Order.entity";
 import {OrderProduct} from "../../models/entities/OrderProduct.entity";
+import {PaymentMethod} from "../../utils/common/enum";
+import * as cron from 'cron'
+import {sendReminderEmail} from "../../utils/common/email";
 
 export class CartService {
     constructor(public cartRepository: Repository<Cart>,
@@ -58,6 +61,7 @@ export class CartService {
                 const cart = new Cart()
                 user.cart = cart
                 await this.userRepository.save(user)
+
             }
             const existProduct = await this.cartProductRepository.createQueryBuilder('cartProduct')
                 .leftJoinAndSelect('cartProduct.product', 'product', 'cartProduct.productId = product.id')
@@ -72,6 +76,7 @@ export class CartService {
                 })
                 addedData.product = await this.productRepository.findOneOrFail({where: {id: data.productId}})
                 await this.cartProductRepository.save(addedData)
+
             } else {
                 existProduct.quantity = existProduct.quantity + data.quantity
                 await this.cartProductRepository.save(existProduct)
@@ -111,7 +116,7 @@ export class CartService {
                 return {
                     'success': false,
                     'status': 404,
-                    'message': 'User dont have cart!'
+                    'message': 'User dont have cart'
                 }
             }
             const existProduct = await this.cartProductRepository.createQueryBuilder('cartProduct')
@@ -162,38 +167,77 @@ export class CartService {
 
     }
 
-    async checkOut(dataArray: CheckoutItems[], user: User) {
-        let order: Order = new Order()
-        order.products = []
-        user.orders.push(order)
-        user = await this.userRepository.save(user)
-        dataArray.forEach((data: CheckoutItems) => {
-            if (data.checkOut) {
-                user.cart.products.forEach(async (product)=>{
-                    if(product.productId===data.productId){
+    async checkOut(dataArray: CheckoutItems[], paymentMethod: PaymentMethod, user: User) {
+        try {
+            if (!user.cart || user.cart.products.length === 0) {
+                return {
+                    'success': false,
+                    'status': 404,
+                    'message': 'User dont have cart or cart does not contain' +
+                        ' any items!'
+                }
+            }
+            let order: Order = new Order()
+            order.products = []
+            user.orders.push(order)
+            order = await this.orderRepository.save(order)
+            user = await this.userRepository.save(user)
+            dataArray.forEach((data: CheckoutItems) => {
+                user.cart.products.forEach(async (product) => {
+                    if (product.productId === data.productId) {
+                        //TODO: Add product quantity check when checkout
                         //add item to order
-                        const checkout = await this.orderProductRepository.create({
-                            productId:product.productId,
-                            quantity:product.quantity,
-                            orderId:order.id
+                        const checkout = this.orderProductRepository.create({
+                            productId: product.productId,
+                            quantity: product.quantity,
+                            orderId: order.id
                         })
                         checkout.product = await this.productRepository.findOneOrFail({where: {id: checkout.productId}})
                         order.products.push(checkout)
                         await this.orderProductRepository.save(checkout)
                     }
                 })
+            })
+            order = await this.orderRepository.save(order)
+            order.getTotalAmount()
+            order.orderDate = order.paymentDate = order.completedDate = new Date()
+            order.paymentMethod = paymentMethod
+            const addedOrder = await this.orderRepository.save(order)
+            //TODO: Add delete cart items when checkout
+            return {
+                'success': true,
+                'status': 200,
+                'message': 'Checkout cart to order successfully!',
+                resource: addedOrder
             }
-        })
-        order = await this.orderRepository.save(order)
-        order.getTotalAmount()
-        const addedOrder = await this.orderRepository.save(order)
-        return {
-            'success': true,
-            'status': 200,
-            'message': 'Checkout cart to order successfully!',
-            resource: addedOrder
+        } catch (e) {
+            return {
+                'success': false,
+                'status': 400,
+                'message': 'Bad request!'
+            }
         }
 
     }
+
+    startCronJob() {
+        const reminder = new cron.CronJob({
+            cronTime: '00 24 17 * * *',
+            onTick:async () =>{
+                //Remind cart items for user
+                const users = await this.userRepository.find()
+                users.forEach((user)=>{
+                    if (user.cart && user.cart.products.length !== 0){
+                        sendReminderEmail(user.email,user.cart)
+                    }
+                })
+                console.log('Cron job is running...')
+            },
+            start: true,
+            timeZone: 'Asia/Ho_Chi_Minh'
+        })
+        reminder.start()
+    }
+
 
 }

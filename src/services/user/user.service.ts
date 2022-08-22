@@ -8,23 +8,28 @@ import {
     sendResetPasswordEmail,
     sendVerificationEmail
 } from "../../utils/common/email"
-import {user_status} from "../../utils/common/enum";
-import {ErrorResponse, SuccessResponse} from "../../utils/common/interfaces";
+import {Owner, UserStatus} from "../../utils/common/enum";
+import {
+    ErrorResponse,
+    isSuccessResponse,
+    SuccessResponse
+} from "../../utils/common/interfaces";
 import {SignIn} from "../../models/dto/sign-in";
 import * as bcrypt from 'bcrypt'
 import {ForgotPassword} from "../../models/dto/forgot-password";
 import * as crypto from 'crypto'
-import {NextFunction, Request, Response} from "express";
-import {EditProfile} from "../../models/dto/edit-profile";
 import {Profile} from "../../models/entities/Profile.entity";
 import {plainToInstance} from "class-transformer";
 import {Cart} from "../../models/entities/Cart.entity";
+import {Request} from "express";
+import {uploadImage} from '../../utils/common/images'
+import {Image} from "../../models/entities/Image.entity";
 
 const {HOST, PORT, JWT_VERIFY, JWT_RESET, JWT_SECRET} = process.env
 
 export class UserService {
 
-    constructor(public userRepository: Repository<User>, public cartRepository: Repository<Cart>) {
+    constructor(public userRepository: Repository<User>,public imageRepository:Repository<Image>, public cartRepository: Repository<Cart>) {
     }
 
     async createUser(data: SignUp): Promise<User> {
@@ -80,14 +85,14 @@ export class UserService {
                     'message': 'User not found!'
                 }
             }
-            if (user.status == user_status.Active) {
+            if (user.status == UserStatus.Active) {
                 return {
                     'success': false,
                     'status': 400,
                     'message': 'User has already verified!'
                 }
             }
-            user.status = user_status.Active
+            user.status = UserStatus.Active
             const verifiedUser = await this.userRepository.save(user)
             const payload = {username: user.username, sub: user.id}
             const accessToken = jwt.sign(payload, JWT_SECRET as string, {expiresIn: '7d'})
@@ -109,7 +114,7 @@ export class UserService {
 
     async login(data: SignIn): Promise<SuccessResponse | ErrorResponse> {
         let user = await this.findOne(data.username, 'username')
-        if (!user || user.status === user_status.NotVerified) {
+        if (!user || user.status === UserStatus.NotVerified) {
             return {
                 'success': false,
                 'status': 400,
@@ -117,8 +122,6 @@ export class UserService {
                     ' again!'
             }
         }
-        user.lastLogin = new Date()
-        user = await this.userRepository.save(user)
         const result = await bcrypt.compare(data.password, user.password)
         if (!result) {
             return {
@@ -129,6 +132,8 @@ export class UserService {
         }
         const payload = {username: user.username, sub: user.id}
         const accessToken = jwt.sign(payload, JWT_SECRET as string, {expiresIn: '7d'})
+        user.lastLogin = new Date()
+        user = await this.userRepository.save(user)
         return {
             'success': true,
             'status': 200,
@@ -180,7 +185,6 @@ export class UserService {
                 }
             }
             const newPassword = crypto.randomBytes(12).toString('hex')
-            console.log(newPassword)
             user.password = newPassword
             await this.userRepository.save(user)
             await sendNewPasswordEmail(user.email, newPassword)
@@ -210,7 +214,10 @@ export class UserService {
 
     async editProfile(data: Profile, user: User): Promise<SuccessResponse | ErrorResponse> {
         try {
-            user.profile = plainToInstance(Profile, data)
+            const profileData = plainToInstance(Profile, data)
+            if (user.profile) {
+                user.profile = Object.assign(user.profile, profileData)
+            } else user.profile = plainToInstance(Profile, data)
             await this.userRepository.save(user)
             return {
                 'success': true,
@@ -224,5 +231,22 @@ export class UserService {
                 'message': 'Error occur!'
             }
         }
+    }
+
+    async uploadAvatar(req: Request, user: User): Promise<SuccessResponse | ErrorResponse> {
+        const result = await uploadImage(req)
+        if(isSuccessResponse(result)){
+            const imageUrl:string = result.resource as string
+            const image = this.imageRepository.create({
+                url: imageUrl,
+                belongTo:Owner.User,
+                ownerId:user.id
+            })
+            await this.imageRepository.save(image)
+
+        }
+
+        return result
+
     }
 }

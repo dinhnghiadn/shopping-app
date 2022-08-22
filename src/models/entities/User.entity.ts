@@ -8,7 +8,7 @@ import {
 import {IsEmail, MaxLength, MinLength} from "class-validator"
 import {Exclude, instanceToPlain} from "class-transformer"
 import {hashPassword} from "../../utils/common/bcrypt";
-import {gender, role, user_status} from "../../utils/common/enum";
+import { Role, UserStatus} from "../../utils/common/enum";
 import {Profile} from "./Profile.entity";
 import {Cart} from "./Cart.entity";
 import {Order} from "./Order.entity";
@@ -38,18 +38,18 @@ export class User extends BaseEntity {
     @Exclude()
     tempPassword: string;
 
-    @Column({type: 'enum', enum: user_status, default: user_status.NotVerified})
-    status: user_status
+    @Column({type: 'enum', enum: UserStatus, default: UserStatus.NotVerified})
+    status: UserStatus
 
-    @Column({type: 'enum', enum: role, default: role.User})
-    role: role
+    @Column({type: 'enum', enum: Role, default: Role.User})
+    role: Role
 
     @Exclude()
     @Column("varchar", { length: 500 ,nullable:true})
     resetToken: string
 
-    @OneToOne(() => Profile, (profile) => profile.user,{cascade:true})
-    @JoinColumn({name: 'profileId'})
+    @OneToOne(() => Profile, (profile) => profile.user,{cascade:true,eager:true})
+
     profile: Profile
 
     @OneToOne(() => Cart, (cart) => cart.user,{cascade:true,eager:true})

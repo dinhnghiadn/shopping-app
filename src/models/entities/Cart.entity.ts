@@ -19,7 +19,7 @@ export class Cart extends BaseEntity {
     @UpdateDateColumn()
     updateAt: Date
 
-    @Column()
+    @Column({default:0})
     totalAmount: number
 
     @OneToOne(() => User, (user) => user.cart)
@@ -28,8 +28,6 @@ export class Cart extends BaseEntity {
     @OneToMany(()=>CartProduct, (cartProduct) => cartProduct.cart,{eager:true})
     products: CartProduct[]
 
-    @BeforeInsert()
-    @BeforeUpdate()
     getTotalAmount(): void {
         // this.totalAmount = this.products.reduce((n, {bulkPrice}) => n + bulkPrice, 0)
         if (this.products){
