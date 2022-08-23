@@ -8,9 +8,7 @@ export class ProductService {
     constructor(public productRepository: Repository<Product>) {
     }
 
-    async getAll(req: Request): Promise<SuccessResponse | ErrorResponse> {
-        const orderBy: string = req.query.sort as string
-        const category: string = req.query.category as string
+    async getAll(orderBy: string, category: string): Promise<SuccessResponse | ErrorResponse> {
         let listProduct: Product[]
         try {
             listProduct = await this.productRepository.createQueryBuilder('product')
@@ -21,8 +19,8 @@ export class ProductService {
             if (listProduct.length === 0) {
                 return {
                     'success': true,
-                    'status': 204,
-                    'message': 'No content!'
+                    'status': 200,
+                    'message': 'Product list is empty!'
                 }
             }
             return {
@@ -40,11 +38,10 @@ export class ProductService {
         }
     }
 
-    async getOne(req: Request):Promise<SuccessResponse | ErrorResponse> {
-        const id = parseInt(req.query.id as string)
+    async getDetail(id: number): Promise<SuccessResponse | ErrorResponse> {
         try {
-            const product = await this.productRepository.findOne({where:{id:id}})
-            if (!product){
+            const product = await this.productRepository.findOne({where: {id: id}})
+            if (!product) {
                 return {
                     'success': false,
                     'status': 404,
@@ -55,7 +52,7 @@ export class ProductService {
                 'success': true,
                 'status': 200,
                 'message': 'Get product detail successfully!',
-                resource:product
+                resource: product
             }
         } catch (e) {
             return {

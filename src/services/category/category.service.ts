@@ -1,6 +1,5 @@
 import {Repository} from "typeorm";
 import {Category} from "../../models/entities/Category.entity";
-import {Request} from "express";
 import {ErrorResponse, SuccessResponse} from "../../utils/common/interfaces";
 
 
@@ -8,8 +7,8 @@ export class CategoryService {
     constructor(public categoryRepository: Repository<Category>) {
     }
 
-    async getAll(req: Request): Promise<SuccessResponse | ErrorResponse> {
-        const orderBy: string = req.query.sort as string
+    async getAll(orderBy:string): Promise<SuccessResponse | ErrorResponse> {
+
         let listCategory: Category[]
         try {
             listCategory = await this.categoryRepository.createQueryBuilder('category')
@@ -37,8 +36,8 @@ export class CategoryService {
             }
         }
     }
-    async getOne(req: Request):Promise<SuccessResponse | ErrorResponse> {
-        const id = parseInt(req.query.id as string)
+    async getOne(id: number):Promise<SuccessResponse | ErrorResponse> {
+
         try {
             const category = await this.categoryRepository.findOne({where:{id:id},relations:{products:true}})
             if (!category){

@@ -6,7 +6,9 @@ import {validate} from "class-validator";
 import {plainToClass, plainToInstance} from "class-transformer";
 import {ForgotPassword} from "../../models/dto/forgot-password";
 import {EditProfile} from "../../models/dto/edit-profile";
-
+import {isSuccessResponse} from "../../utils/common/interfaces";
+import {Role} from "../../utils/common/enum";
+import {User} from "../../models/entities/User.entity";
 
 
 export class UserController {
@@ -24,19 +26,17 @@ export class UserController {
 
         const result = await this.userService.signUp(body)
         res.status(result.status).json(result)
-        return
-
     }
 
     async verify(req: Request, res: Response): Promise<void> {
         const token = req.query.token
         const result = await this.userService.verify(token as string)
         res.status(result.status).json(result)
-        return
 
     }
 
-    async login(data: SignIn, res: Response): Promise<void> {
+    async login(req: Request, res: Response): Promise<void> {
+        const data = req.body
         const errors = await validate(plainToInstance(SignIn, data))
         if (errors.length > 0) {
             let messages = JSON.stringify(errors.map(error => error.constraints))
@@ -44,28 +44,31 @@ export class UserController {
             return
         }
         const result = await this.userService.login(data)
+        if(isSuccessResponse(result)){
+            const user = result.resource as User
+            if(user.role === Role.Admin){
+                req.session.isAdmin = true
+            }
+        }
         res.status(result.status).json(result)
-        return
 
     }
 
     async forgot(body: ForgotPassword, res: Response): Promise<void> {
         const result = await this.userService.forgotPassword(body)
         res.status(result.status).json(result)
-        return
     }
 
     async reset(req: Request, res: Response): Promise<void> {
         const token = req.query.token
         const result = await this.userService.reset(token as string)
         res.status(result.status).json(result)
-        return
     }
 
     async viewProfile(req:Request,res: Response): Promise<void>{
         const result = await this.userService.viewProfile(req.body.user)
         res.status(result.status).json(result)
-        return
+
     }
 
     async editProfile(req:Request,res: Response): Promise<void>{
@@ -78,17 +81,21 @@ export class UserController {
         }
         const result = await this.userService.editProfile(profile,user)
         res.status(result.status).json(result)
-        return
+    }
+
+    async getAvatar(req:Request, res: Response): Promise<void>{
+        const user = req.body.user
+        const result = await this.userService.getAvatar(user)
+        res.status(result.status).json(result)
     }
 
     async uploadAvatar(req:Request, res: Response): Promise<void>{
         const user = req.body.user
-        console.log(req.body)
         if(!req.file) {
             res.status(400).send("Error: No files found")
             return
         }
-        const result = await this.userService.uploadAvatar(req,user)
+        const result = await this.userService.uploadAvatar(req.file,user)
         res.status(result.status).json(result)
     }
 }

@@ -8,8 +8,10 @@ export class ProductRoutes {
 
     getRoutes(): Router {
 
-        this.router.get('/product/list', (req: Request, res: Response) => this.productController.getAll(req, res))
-        this.router.get('/product/detail', (req: Request, res: Response) => this.productController.getOne(req, res))
+        this.router.get('/product/list',
+            (req: Request, res: Response) => this.productController.getAll(req, res))
+        this.router.get('/product/detail',
+            (req: Request, res: Response) => this.productController.getDetail(req, res))
         return this.router
     }
 }

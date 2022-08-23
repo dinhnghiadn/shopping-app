@@ -7,8 +7,10 @@ export class CategoryRoutes {
     }
 
     getRoutes(): Router {
-        this.router.get('/category/list', (req: Request, res: Response) => this.categoryController.getAll(req, res))
-        this.router.get('/category/detail', (req: Request, res: Response) => this.categoryController.getOne(req, res))
+        this.router.get('/category/list',
+            (req: Request, res: Response) => this.categoryController.getAll(req, res))
+        this.router.get('/category/detail',
+            (req: Request, res: Response) => this.categoryController.getOne(req, res))
         return this.router
     }
 }

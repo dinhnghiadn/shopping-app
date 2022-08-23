@@ -20,7 +20,7 @@ export class Category extends BaseEntity {
     description: string
 
     @Column()
-    productQuantities: number
+    numberOfProducts: number
 
     @ManyToMany(()=>Product,(product) => product.categories)
     products: Product[]
@@ -28,6 +28,6 @@ export class Category extends BaseEntity {
     @AfterInsert()
     @AfterUpdate()
     getProductQuantity(): void {
-        this.productQuantities= this.products.length
+        this.numberOfProducts= this.products.length
     }
 }

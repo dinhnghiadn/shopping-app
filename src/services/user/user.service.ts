@@ -21,16 +21,18 @@ import * as crypto from 'crypto'
 import {Profile} from "../../models/entities/Profile.entity";
 import {plainToInstance} from "class-transformer";
 import {Cart} from "../../models/entities/Cart.entity";
-import {Request} from "express";
-import {uploadImage} from '../../utils/common/images'
+import {deleteImage, uploadImage} from '../../utils/common/images'
 import {Image} from "../../models/entities/Image.entity";
 
 const {HOST, PORT, JWT_VERIFY, JWT_RESET, JWT_SECRET} = process.env
 
 export class UserService {
 
-    constructor(public userRepository: Repository<User>,public imageRepository:Repository<Image>, public cartRepository: Repository<Cart>) {
+    constructor(public userRepository: Repository<User>, public imageRepository: Repository<Image>, public cartRepository: Repository<Cart>) {
+
     }
+
+
 
     async createUser(data: SignUp): Promise<User> {
         const user = this.userRepository.create(data)
@@ -233,20 +235,53 @@ export class UserService {
         }
     }
 
-    async uploadAvatar(req: Request, user: User): Promise<SuccessResponse | ErrorResponse> {
-        const result = await uploadImage(req)
-        if(isSuccessResponse(result)){
-            const imageUrl:string = result.resource as string
-            const image = this.imageRepository.create({
-                url: imageUrl,
-                belongTo:Owner.User,
-                ownerId:user.id
+    async getAvatar(user: User): Promise<SuccessResponse | ErrorResponse> {
+        const existAvatar = await this.imageRepository.findOne({
+            where: {
+                belongTo: Owner.User,
+                ownerId: user.id
+            }
+        })
+        if (!existAvatar) {
+            return {
+                'success': false,
+                'status': 404,
+                'message': 'Avatar not found!'
+            }
+        }
+        return {
+            'success': true,
+            'status': 200,
+            'message': 'Get avatar of user successfully'!,
+            resource: existAvatar
+        }
+    }
+
+    async uploadAvatar(file: Express.Multer.File, user: User): Promise<SuccessResponse | ErrorResponse> {
+        const result = await uploadImage(file, 'users')
+        if (isSuccessResponse(result)) {
+            const imageUrl: string = result.resource as string
+            const existImage = await this.imageRepository.findOne({
+                where: {
+                    belongTo: Owner.User,
+                    ownerId: user.id
+                }
             })
-            await this.imageRepository.save(image)
+            if (existImage) {
+                await deleteImage(existImage.url)
+                existImage.url = imageUrl
+                await this.imageRepository.save(existImage)
+            } else {
+                const image = this.imageRepository.create({
+                    url: imageUrl,
+                    belongTo: Owner.User,
+                    ownerId: user.id
+                })
+                await this.imageRepository.save(image)
+            }
 
         }
-
         return result
-
     }
+
 }

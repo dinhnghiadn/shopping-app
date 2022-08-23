@@ -16,6 +16,9 @@ import {CartRoutes} from "../../services/cart/cart.routes";
 import {OrderService} from "../../services/order/order.service";
 import {OrderController} from "../../services/order/order.controller";
 import {OrderRoutes} from "../../services/order/order.routes";
+import {AdminService} from "../../services/admin/admin.service";
+import {AdminController} from "../../services/admin/admin.controller";
+import {AdminRoutes} from "../../services/admin/admin.routes";
 
 
 
@@ -38,9 +41,11 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
     cartService.startCronJob()
 
     //Order
-    const orderService = new OrderService(dataSource.getRepository('Order'),dataSource.getRepository('User'))
+    const orderService = new OrderService(dataSource.getRepository('Order'),
+        dataSource.getRepository('User'))
     const orderController = new OrderController(orderService)
     new OrderRoutes(router,orderController).getOrderRoutes()
+
     //Product
     const productService = new ProductService(dataSource.getRepository('Product'))
     const productController = new ProductController(productService)
@@ -55,8 +60,20 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
     const userService = new UserService(dataSource.getRepository('User'),
         dataSource.getRepository('Image'),
         dataSource.getRepository('Cart'))
+
     const userController = new UserController(userService)
     new UserRoutes(router, userController).getUserRoutes()
+
+    //Admin
+    const adminService = new AdminService(dataSource.getRepository('Cart'),
+        dataSource.getRepository('CartProduct'),
+        dataSource.getRepository('Category'),
+        dataSource.getRepository('Product'),
+        dataSource.getRepository('User'),
+        dataSource.getRepository('Order'),
+        dataSource.getRepository('OrderProduct'))
+    const adminController = new AdminController(adminService)
+    new AdminRoutes(router,adminController).getRoutes()
 
     return router
 }

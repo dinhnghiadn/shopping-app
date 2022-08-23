@@ -2,6 +2,7 @@ import 'dotenv/config'
 import {DatabaseConnection} from "./utils/database/db";
 import express, {Express} from 'express'
 import {wrap} from "./utils/shared/wrap";
+import {sessionMiddleware} from "./utils/common/session";
 
 const port = process.env.PORT
 const app: Express = express()
@@ -13,6 +14,7 @@ app.use(express.urlencoded({
 
 // Middleware for parsing json objects to request
 app.use(express.json())
+app.use(sessionMiddleware)
 
 export const databaseConnection = new DatabaseConnection()
 databaseConnection.initialize()

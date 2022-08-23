@@ -1,10 +1,11 @@
 import multer from 'multer'
 import admin from 'firebase-admin'
-import {NextFunction, Request, Response} from "express";
+import {Request} from "express";
 import {ErrorResponse, SuccessResponse} from "./interfaces";
+import sharp from 'sharp'
 
 
-const BUCKET = 'shopping-app-e4150.appspot.com'
+const {BUCKET,FIREBASE_STORAGE} = process.env
 export const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -25,18 +26,16 @@ admin.initializeApp({
 
 const bucket = admin.storage().bucket()
 
-export const uploadImage = async (req: Request): Promise<SuccessResponse | ErrorResponse> => {
-    if (!req.file) {
-        return {
-            'success': false,
-            'status': 500,
-            'message': 'Error occur!'
-        }
-    }
-    const image = req.file
+export const uploadImage = async (image: Express.Multer.File, directory: string): Promise<SuccessResponse | ErrorResponse> => {
+
+    image.buffer = await sharp(image.buffer).resize({
+        width: 250,
+        height: 250
+    }).png().toBuffer()
     const nameArchive = Date.now() + '.' + image.originalname.split('.').pop()
-    const file = bucket.file(nameArchive)
-    const stream = file.createWriteStream({
+    const fullPath = `${directory}/${nameArchive}`;
+    const bucketFile = bucket.file(fullPath)
+    const stream = bucketFile.createWriteStream({
         metadata: {
             contentType: image.mimetype
         }
@@ -52,8 +51,8 @@ export const uploadImage = async (req: Request): Promise<SuccessResponse | Error
             )
         })
         stream.on('finish', async () => {
-            await file.makePublic()
-            const firebaseUrl = `https://storage.googleapis.com/${BUCKET}/${nameArchive}`
+            await bucketFile.makePublic()
+            const firebaseUrl = `https://storage.googleapis.com/${BUCKET}/${directory}/${nameArchive}`
             resolve({
                 'success': true,
                 'status': 200,
@@ -63,23 +62,10 @@ export const uploadImage = async (req: Request): Promise<SuccessResponse | Error
         })
         stream.end(image.buffer)
     })
-    // const stream = file.createWriteStream({
-    //     metadata: {
-    //         contentType: req.file.mimetype
-    //     }
-    // })
-    //
-    // stream.on('error', (e) => {
-    //     console.log(e)
-    // })
-    // stream.on('finish',async () => {
-    //     await file.makePublic()
-    //     req.body.firebaseUrl = `https://storage.googleapis.com/${BUCKET}/${nameArchive}`
-    //     console.log(req.body.firebaseUrl)
-    // })
-    // stream.end(image.buffer)
-    // return {
-    //     'success': true,
-    //     'status': 200,
-    //     resource: `https://storage.googleapis.com/${BUCKET}/${nameArchive}`,
+
+}
+export const deleteImage = async (url: string) => {
+    const ref = url.replace(FIREBASE_STORAGE as string,'')
+    return await bucket.file(ref).delete()
+
 }

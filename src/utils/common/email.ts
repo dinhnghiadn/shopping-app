@@ -82,7 +82,6 @@ export const sendPaymentSuccessfullyEmail = async (email: string, order: Order) 
 }
 
 export const sendReminderEmail = async (email: string, cart: Cart) => {
-    console.log(cart.products)
     let arrayItems = ''
     cart.products.forEach((product) => {
         arrayItems += '<li>Item: ' + product.product.name +' - Price: '+product.product.price+ '$ - Quantity ' + product.quantity + '</li>';
