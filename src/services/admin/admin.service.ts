@@ -6,17 +6,27 @@ import {User} from "../../models/entities/User.entity";
 import {Order} from "../../models/entities/Order.entity";
 import {OrderProduct} from "../../models/entities/OrderProduct.entity";
 import {Category} from "../../models/entities/Category.entity";
-import {ErrorResponse, SuccessResponse} from "../../utils/common/interfaces";
-import {UserStatus} from "../../utils/common/enum";
+import {
+    ErrorResponse,
+    isSuccessResponse, ProductImages,
+    SuccessResponse
+} from "../../utils/common/interfaces";
+import {Owner, UserStatus} from "../../utils/common/enum";
+import {CategoryInput} from "../../models/dto/category-input";
+import {deleteImage, uploadImage} from "../../utils/common/images";
+import {Image} from "../../models/entities/Image.entity";
+import {CategoryEdit} from "../../models/dto/category-edit";
+import {ProductInput} from "../../models/dto/product-input";
 
 export class AdminService {
-    constructor(public cartRepository: Repository<Cart>,
-                public cartProductRepository: Repository<CartProduct>,
-                public categoryRepository: Repository<Category>,
-                public productRepository: Repository<Product>,
-                public userRepository: Repository<User>,
-                public orderRepository: Repository<Order>,
-                public orderProductRepository: Repository<OrderProduct>) {
+    constructor(private cartRepository: Repository<Cart>,
+                private cartProductRepository: Repository<CartProduct>,
+                private categoryRepository: Repository<Category>,
+                private productRepository: Repository<Product>,
+                private userRepository: Repository<User>,
+                private orderRepository: Repository<Order>,
+                private orderProductRepository: Repository<OrderProduct>,
+                private imageRepository: Repository<Image>) {
 
     }
 
@@ -130,7 +140,7 @@ export class AdminService {
     }
 
     //Category service for admin
-    async getAllCategories(): Promise<SuccessResponse | ErrorResponse>  {
+    async getAllCategories(): Promise<SuccessResponse | ErrorResponse> {
         const listCategories = await this.categoryRepository.find()
         if (listCategories.length === 0) {
             return {
@@ -144,6 +154,185 @@ export class AdminService {
             'status': 200,
             'message': 'Get categories list successfully!',
             resources: listCategories
+        }
+    }
+
+    async getCategoryDetail(id: number): Promise<SuccessResponse | ErrorResponse> {
+        const category = await this.categoryRepository.findOne({where: {id}})
+        if (!category) {
+            return {
+                'success': false,
+                'status': 404,
+                'message': 'Category not found!'
+            }
+        }
+        const image = await this.imageRepository.findOne({
+            where: {
+                ownerId: category.id,
+                belongTo: Owner.Category
+            }
+        })
+        return {
+            'success': true,
+            'status': 200,
+            'message': 'Get category detail successfully!',
+            resource: {category, image}
+        }
+    }
+
+    async addCategory(data: CategoryInput, file: Express.Multer.File): Promise<SuccessResponse | ErrorResponse> {
+        const category = this.categoryRepository.create(data)
+        const savedCategory = await this.categoryRepository.save(category)
+        const uploadResult = await uploadImage(file, 'categories')
+        let savedImage
+        if (isSuccessResponse(uploadResult)) {
+            const imageUrl: string = uploadResult.resource as string
+            const image = this.imageRepository.create({
+                url: imageUrl,
+                belongTo: Owner.Category,
+                ownerId: savedCategory.id
+            })
+            savedImage = await this.imageRepository.save(image)
+        }
+        return {
+            'success': true,
+            'status': 201,
+            'message': 'Create category successfully!',
+            resource: {
+                category: savedCategory,
+                image: savedImage
+            }
+        }
+    }
+
+    async editCategory(id: number, data: CategoryEdit, file?: Express.Multer.File): Promise<SuccessResponse | ErrorResponse> {
+        let existCategory = await this.categoryRepository.findOne({where: {id}})
+        if (!existCategory) {
+            return {
+                'success': false,
+                'status': 404,
+                'message': 'Category not found!'
+            }
+        }
+
+        if (file) {
+            const uploadResult = await uploadImage(file, 'categories')
+            if (isSuccessResponse(uploadResult)) {
+                const imageUrl: string = uploadResult.resource as string
+                const existImage = await this.imageRepository.findOne({
+                    where: {
+                        belongTo: Owner.Category,
+                        ownerId: existCategory.id
+                    }
+                })
+                if (existImage) {
+                    await deleteImage(existImage.url)
+                    existImage.url = imageUrl
+                    await this.imageRepository.save(existImage)
+                } else {
+                    const image = this.imageRepository.create({
+                        url: imageUrl,
+                        belongTo: Owner.Category,
+                        ownerId: existCategory.id
+                    })
+                    await this.imageRepository.save(image)
+                }
+            }
+        }
+        await this.categoryRepository.update({id}, {
+            name: data.name,
+            description: data.description
+        })
+        return {
+            'success': true,
+            'status': 200,
+            'message': 'Update category successfully!',
+        }
+
+    }
+
+    async deleteCategory(id: number) {
+        let existCategory = await this.categoryRepository.findOne({where: {id}})
+        if (!existCategory) {
+            return {
+                'success': false,
+                'status': 404,
+                'message': 'Category not found!'
+            }
+        }
+        if (existCategory.numberOfProducts !== 0) {
+            return {
+                'success': false,
+                'status': 400,
+                'message': 'Cant delete category which have products!'
+            }
+        }
+        const existImage = await this.imageRepository.findOne({
+            where: {
+                belongTo: Owner.Category,
+                ownerId: existCategory.id
+            }
+        })
+        if (existImage) {
+            await deleteImage(existImage.url)
+            await this.imageRepository.remove(existImage)
+        }
+        await this.categoryRepository.remove(existCategory)
+        return {
+            'success': true,
+            'status': 200,
+            'message': 'Delete category successfully!'
+        }
+
+    }
+
+    async getAllProducts() {
+        const listProducts = await this.productRepository.find()
+        if (listProducts.length === 0) {
+            return {
+                'success': true,
+                'status': 200,
+                'message': 'Products list is empty!'
+            }
+        }
+        return {
+            'success': true,
+            'status': 200,
+            'message': 'Get products list successfully!',
+            resources: listProducts
+        }
+    }
+
+    async addProduct(data: ProductInput, files: Express.Multer.File[]) {
+        const product = this.productRepository.create(data)
+        const savedProduct = await this.productRepository.save(product)
+        let savedImages: ProductImages[] = []
+        for (const file of files) {
+            const uploadResult = await uploadImage(file, `products/${savedProduct.id}`)
+            if (isSuccessResponse(uploadResult)) {
+                const imageUrl: string = uploadResult.resource as string
+                const image = this.imageRepository.create({
+                    url: imageUrl,
+                    belongTo: Owner.Product,
+                    ownerId: savedProduct.id,
+                    primary: false
+                })
+                const savedImage = await this.imageRepository.save(image)
+                savedImages.push({
+                    primary: savedImage.primary,
+                    url: savedImage.url
+                })
+            }
+        }
+        //TODO: add categories to added product
+        return {
+            'success': true,
+            'status': 201,
+            'message': 'Create category successfully!',
+            resource: {
+                category: savedProduct,
+                images: savedImages
+            }
         }
     }
 }

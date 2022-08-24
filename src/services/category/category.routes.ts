@@ -9,7 +9,7 @@ export class CategoryRoutes {
     getRoutes(): Router {
         this.router.get('/category/list',
             (req: Request, res: Response) => this.categoryController.getAll(req, res))
-        this.router.get('/category/detail',
+        this.router.get('/category/detail/:id',
             (req: Request, res: Response) => this.categoryController.getOne(req, res))
         return this.router
     }

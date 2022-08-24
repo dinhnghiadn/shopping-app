@@ -71,7 +71,8 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
         dataSource.getRepository('Product'),
         dataSource.getRepository('User'),
         dataSource.getRepository('Order'),
-        dataSource.getRepository('OrderProduct'))
+        dataSource.getRepository('OrderProduct'),
+        dataSource.getRepository('Image'))
     const adminController = new AdminController(adminService)
     new AdminRoutes(router,adminController).getRoutes()
 

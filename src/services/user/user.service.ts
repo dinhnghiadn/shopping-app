@@ -33,7 +33,6 @@ export class UserService {
     }
 
 
-
     async createUser(data: SignUp): Promise<User> {
         const user = this.userRepository.create(data)
         user.lastLogin = new Date()
@@ -116,13 +115,29 @@ export class UserService {
 
     async login(data: SignIn): Promise<SuccessResponse | ErrorResponse> {
         let user = await this.findOne(data.username, 'username')
-        if (!user || user.status === UserStatus.NotVerified) {
+        if (!user ) {
             return {
                 'success': false,
                 'status': 400,
-                'message': 'User not found or not verified yet. Please try' +
-                    ' again!'
+                'message': 'User not found '
             }
+        }
+        switch (user.status){
+            case UserStatus.NotVerified:
+                return {
+                    'success': false,
+                    'status': 400,
+                    'message': 'User are not verified yet!'
+                }
+            case UserStatus.Blocked:
+                return {
+                    'success': false,
+                    'status': 400,
+                    'message': 'You are blocked. Contact' +
+                        ' admin for more information!'
+                }
+
+
         }
         const result = await bcrypt.compare(data.password, user.password)
         if (!result) {
@@ -132,6 +147,7 @@ export class UserService {
                 'message': 'Wrong password. Please try again!'
             }
         }
+
         const payload = {username: user.username, sub: user.id}
         const accessToken = jwt.sign(payload, JWT_SECRET as string, {expiresIn: '7d'})
         user.lastLogin = new Date()
@@ -158,7 +174,7 @@ export class UserService {
         const resetToken = jwt.sign(payload, process.env.JWT_RESET as string, {expiresIn: 60 * 3})
         user.resetToken = resetToken
         await this.userRepository.save(user)
-        const resetUrl = 'http://' + HOST + ':' + PORT + '/user/' + 'reset?token=' + resetToken
+        const resetUrl = `http://${HOST}:${PORT}/user/reset?token=${resetToken}`
         await sendResetPasswordEmail(user.email, resetUrl)
         return {
             'success': true,
@@ -258,9 +274,9 @@ export class UserService {
     }
 
     async uploadAvatar(file: Express.Multer.File, user: User): Promise<SuccessResponse | ErrorResponse> {
-        const result = await uploadImage(file, 'users')
-        if (isSuccessResponse(result)) {
-            const imageUrl: string = result.resource as string
+        const uploadResult = await uploadImage(file, 'users')
+        if (isSuccessResponse(uploadResult)) {
+            const imageUrl: string = uploadResult.resource as string
             const existImage = await this.imageRepository.findOne({
                 where: {
                     belongTo: Owner.User,
@@ -281,7 +297,7 @@ export class UserService {
             }
 
         }
-        return result
+        return uploadResult
     }
 
 }

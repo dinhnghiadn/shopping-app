@@ -9,7 +9,7 @@ export enum Gender {
 export enum Owner {
     User = "USER",
     Product = "PRODUCT",
-    CATEGORY = "CATEGORY",
+    Category = "CATEGORY",
 
 }
 

@@ -9,6 +9,8 @@ import {EditProfile} from "../../models/dto/edit-profile";
 import {isSuccessResponse} from "../../utils/common/interfaces";
 import {Role} from "../../utils/common/enum";
 import {User} from "../../models/entities/User.entity";
+import {upload, uploadImage} from "../../utils/common/images";
+import {EditItems} from "../../models/dto/edit-items";
 
 
 export class UserController {
@@ -17,7 +19,7 @@ export class UserController {
 
 
     async signUp(body: SignUp, res: Response): Promise<void> {
-        const errors = await validate(plainToClass(SignUp, body))
+        const errors = await validate(plainToInstance(SignUp, body))
         if (errors.length > 0) {
             let messages = JSON.stringify(errors.map(error => error.constraints))
             res.status(400).send(messages)
@@ -55,6 +57,12 @@ export class UserController {
     }
 
     async forgot(body: ForgotPassword, res: Response): Promise<void> {
+        const errors = await validate(plainToInstance(ForgotPassword, body))
+        if (errors.length > 0) {
+            let messages = JSON.stringify(errors.map(error => error.constraints))
+            res.status(400).send(messages)
+            return
+        }
         const result = await this.userService.forgotPassword(body)
         res.status(result.status).json(result)
     }

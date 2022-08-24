@@ -19,7 +19,7 @@ export class Category extends BaseEntity {
     @Column()
     description: string
 
-    @Column()
+    @Column({default:0})
     numberOfProducts: number
 
     @ManyToMany(()=>Product,(product) => product.categories)
@@ -28,6 +28,9 @@ export class Category extends BaseEntity {
     @AfterInsert()
     @AfterUpdate()
     getProductQuantity(): void {
-        this.numberOfProducts= this.products.length
+        if (this.products){
+            this.numberOfProducts= this.products.length
+        }
+        else this.numberOfProducts = 0
     }
 }

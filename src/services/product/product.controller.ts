@@ -11,7 +11,7 @@ export class ProductController {
     }
 
     async getDetail(req: Request, res: Response): Promise<void> {
-        const id : number = parseInt(req.query.id as string)
+        const id : number = parseInt(req.params.id as string)
         const result = await this.productService.getDetail(id)
         res.status(result.status).json(result)
     }
