@@ -44,33 +44,41 @@ export class UserService {
     }
 
     async signUp(data: SignUp): Promise<SuccessResponse | ErrorResponse> {
-        const duplicateUsername = await this.findOne(data.username, 'username')
-        if (duplicateUsername) {
-            return {
-                'success': false,
-                'status': 400,
-                'message': 'Username has been taken!'
+        try {
+            const duplicateUsername = await this.findOne(data.username, 'username')
+            if (duplicateUsername) {
+                return {
+                    'success': false,
+                    'status': 400,
+                    'message': 'Username has been taken!'
+                }
             }
-        }
 
-        const duplicateEmail = await this.findOne(data.email, 'email')
-        if (duplicateEmail) {
+            const duplicateEmail = await this.findOne(data.email, 'email')
+            if (duplicateEmail) {
+                return {
+                    'success': false,
+                    'status': 400,
+                    'message': 'Email has been taken!'
+                }
+            }
+            const createdUser = await this.createUser(data)
+            const payload = {email: data.email, created: new Date().toString()}
+            const verifyToken = jwt.sign(payload, process.env.JWT_VERIFY as string, {expiresIn: '1d'})
+            const verifyUrl = 'http://' + HOST + ':' + PORT + '/user/' + 'verify?token=' + verifyToken
+            await sendVerificationEmail(data.email, verifyUrl)
+            return {
+                'success': true,
+                'status': 201,
+                'message': 'Create user successfully!',
+                resource: createdUser
+            }
+        } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Email has been taken!'
+                'status': 500,
+                'message': 'Error occur!'
             }
-        }
-        const createdUser = await this.createUser(data)
-        const payload = {email: data.email, created: new Date().toString()}
-        const verifyToken = jwt.sign(payload, process.env.JWT_VERIFY as string, {expiresIn: '1d'})
-        const verifyUrl = 'http://' + HOST + ':' + PORT + '/user/' + 'verify?token=' + verifyToken
-        await sendVerificationEmail(data.email, verifyUrl)
-        return {
-            'success': true,
-            'status': 201,
-            'message': 'Create user successfully!',
-            resource: createdUser
         }
     }
 
@@ -114,72 +122,88 @@ export class UserService {
     }
 
     async login(data: SignIn): Promise<SuccessResponse | ErrorResponse> {
-        let user = await this.findOne(data.username, 'username')
-        if (!user ) {
-            return {
-                'success': false,
-                'status': 400,
-                'message': 'User not found '
-            }
-        }
-        switch (user.status){
-            case UserStatus.NotVerified:
+        try {
+            let user = await this.findOne(data.username, 'username')
+            if (!user) {
                 return {
                     'success': false,
                     'status': 400,
-                    'message': 'User are not verified yet!'
+                    'message': 'User not found '
                 }
-            case UserStatus.Blocked:
+            }
+            switch (user.status) {
+                case UserStatus.NotVerified:
+                    return {
+                        'success': false,
+                        'status': 400,
+                        'message': 'User are not verified yet!'
+                    }
+                case UserStatus.Blocked:
+                    return {
+                        'success': false,
+                        'status': 400,
+                        'message': 'You are blocked. Contact' +
+                            ' admin for more information!'
+                    }
+
+
+            }
+            const result = await bcrypt.compare(data.password, user.password)
+            if (!result) {
                 return {
                     'success': false,
-                    'status': 400,
-                    'message': 'You are blocked. Contact' +
-                        ' admin for more information!'
+                    'status': 401,
+                    'message': 'Wrong password. Please try again!'
                 }
+            }
 
-
-        }
-        const result = await bcrypt.compare(data.password, user.password)
-        if (!result) {
+            const payload = {username: user.username, sub: user.id}
+            const accessToken = jwt.sign(payload, JWT_SECRET as string, {expiresIn: '7d'})
+            user.lastLogin = new Date()
+            user = await this.userRepository.save(user)
+            return {
+                'success': true,
+                'status': 200,
+                'message': 'Login successfully!',
+                resource: user,
+                token: accessToken
+            }
+        } catch (e) {
             return {
                 'success': false,
-                'status': 401,
-                'message': 'Wrong password. Please try again!'
+                'status': 500,
+                'message': 'Error occur!'
             }
-        }
-
-        const payload = {username: user.username, sub: user.id}
-        const accessToken = jwt.sign(payload, JWT_SECRET as string, {expiresIn: '7d'})
-        user.lastLogin = new Date()
-        user = await this.userRepository.save(user)
-        return {
-            'success': true,
-            'status': 200,
-            'message': 'Login successfully!',
-            resource: user,
-            token: accessToken
         }
     }
 
     async forgotPassword(body: ForgotPassword): Promise<SuccessResponse | ErrorResponse> {
-        const user = await this.findOne(body.email, 'email')
-        if (!user) {
+        try {
+            const user = await this.findOne(body.email, 'email')
+            if (!user) {
+                return {
+                    'success': false,
+                    'status': 400,
+                    'message': 'There are no user with this email!'
+                }
+            }
+            const payload = {email: user.email, created: new Date().toString()}
+            const resetToken = jwt.sign(payload, process.env.JWT_RESET as string, {expiresIn: 60 * 3})
+            user.resetToken = resetToken
+            await this.userRepository.save(user)
+            const resetUrl = `http://${HOST}:${PORT}/user/reset?token=${resetToken}`
+            await sendResetPasswordEmail(user.email, resetUrl)
+            return {
+                'success': true,
+                'status': 200,
+                'message': 'Check your email for password reset!'
+            }
+        } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'There are no user with this email!'
+                'status': 500,
+                'message': 'Error occur!'
             }
-        }
-        const payload = {email: user.email, created: new Date().toString()}
-        const resetToken = jwt.sign(payload, process.env.JWT_RESET as string, {expiresIn: 60 * 3})
-        user.resetToken = resetToken
-        await this.userRepository.save(user)
-        const resetUrl = `http://${HOST}:${PORT}/user/reset?token=${resetToken}`
-        await sendResetPasswordEmail(user.email, resetUrl)
-        return {
-            'success': true,
-            'status': 200,
-            'message': 'Check your email for password reset!'
         }
     }
 
@@ -252,52 +276,68 @@ export class UserService {
     }
 
     async getAvatar(user: User): Promise<SuccessResponse | ErrorResponse> {
-        const existAvatar = await this.imageRepository.findOne({
-            where: {
-                belongTo: Owner.User,
-                ownerId: user.id
-            }
-        })
-        if (!existAvatar) {
-            return {
-                'success': false,
-                'status': 404,
-                'message': 'Avatar not found!'
-            }
-        }
-        return {
-            'success': true,
-            'status': 200,
-            'message': 'Get avatar of user successfully'!,
-            resource: existAvatar
-        }
-    }
-
-    async uploadAvatar(file: Express.Multer.File, user: User): Promise<SuccessResponse | ErrorResponse> {
-        const uploadResult = await uploadImage(file, 'users')
-        if (isSuccessResponse(uploadResult)) {
-            const imageUrl: string = uploadResult.resource as string
-            const existImage = await this.imageRepository.findOne({
+        try {
+            const existAvatar = await this.imageRepository.findOne({
                 where: {
                     belongTo: Owner.User,
                     ownerId: user.id
                 }
             })
-            if (existImage) {
-                await deleteImage(existImage.url)
-                existImage.url = imageUrl
-                await this.imageRepository.save(existImage)
-            } else {
-                const image = this.imageRepository.create({
-                    url: imageUrl,
-                    belongTo: Owner.User,
-                    ownerId: user.id
-                })
-                await this.imageRepository.save(image)
+            if (!existAvatar) {
+                return {
+                    'success': false,
+                    'status': 404,
+                    'message': 'Avatar not found!'
+                }
             }
-
+            return {
+                'success': true,
+                'status': 200,
+                'message': 'Get avatar of user successfully'!,
+                resource: existAvatar
+            }
+        } catch (e) {
+            return {
+                'success': false,
+                'status': 500,
+                'message': 'Error occur!'
+            }
         }
-        return uploadResult
+    }
+
+    async uploadAvatar(file: Express.Multer.File, user: User): Promise<SuccessResponse | ErrorResponse> {
+        try {
+            const uploadResult = await uploadImage(file, 'users')
+            if (isSuccessResponse(uploadResult)) {
+                const imageUrl: string = uploadResult.resource as string
+                const existImage = await this.imageRepository.findOne({
+                    where: {
+                        belongTo: Owner.User,
+                        ownerId: user.id
+                    }
+                })
+                if (existImage) {
+                    await deleteImage(existImage.url)
+                    existImage.url = imageUrl
+                    await this.imageRepository.save(existImage)
+                } else {
+                    const image = this.imageRepository.create({
+                        url: imageUrl,
+                        belongTo: Owner.User,
+                        ownerId: user.id
+                    })
+                    await this.imageRepository.save(image)
+                }
+
+            }
+            return uploadResult
+        } catch (e) {
+            return {
+                'success': false,
+                'status': 500,
+                'message': 'Error occur!'
+            }
+        }
     }
 
 }

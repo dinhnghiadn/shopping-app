@@ -25,7 +25,6 @@ export class UserRoutes {
         this.router.post('/user/profile',
             (req: Request, res: Response, next: NextFunction) => auth(req, res, next, this.userController.userService.userRepository),
             (req: Request, res: Response) => this.userController.editProfile(req, res))
-        //TODO: Add edit profile route
         this.router.get('/user/avatar',
             (req: Request, res: Response, next: NextFunction) => auth(req, res, next, this.userController.userService.userRepository),
             (req: Request, res: Response) => this.userController.getAvatar(req, res))

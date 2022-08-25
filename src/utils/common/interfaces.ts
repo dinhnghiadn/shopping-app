@@ -19,8 +19,4 @@ export function isSuccessResponse(object:any): object is SuccessResponse{
     return object.success === true
 }
 
-export interface ProductImages {
-    primary: boolean,
-    url: string,
-}
 

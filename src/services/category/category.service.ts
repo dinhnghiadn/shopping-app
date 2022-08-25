@@ -31,8 +31,8 @@ export class CategoryService {
         } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Bad request!'
+                'status': 500,
+                'message': 'Error occur!'
             }
         }
     }
@@ -56,8 +56,8 @@ export class CategoryService {
         } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Bad request!'
+                'status': 500,
+                'message': 'Error occur!'
             }
         }
     }

@@ -76,9 +76,10 @@ export class CartService {
                 })
                 addedData.product = await this.productRepository.findOneOrFail({where: {id: data.productId}})
                 await this.cartProductRepository.save(addedData)
-
+                //TODO : add check product quantity
             } else {
                 existProduct.quantity = existProduct.quantity + data.quantity
+                //TODO : add check product quantity
                 await this.cartProductRepository.save(existProduct)
             }
             const updatedCartUser = await this.userRepository.findOneOrFail({
@@ -96,8 +97,8 @@ export class CartService {
         } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Bad request!'
+                'status': 500,
+                'message': 'Error occur!'
             }
         }
 
@@ -160,8 +161,8 @@ export class CartService {
         } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Bad request!'
+                'status': 500,
+                'message': 'Error occur!'
             }
         }
 
@@ -183,16 +184,23 @@ export class CartService {
             order = await this.orderRepository.save(order)
             user = await this.userRepository.save(user)
             dataArray.forEach((data: CheckoutItems) => {
-                user.cart.products.forEach(async (product) => {
-                    if (product.productId === data.productId) {
-                        //TODO: Add product quantity check when checkout
+                user.cart.products.forEach(async (cartProduct) => {
+                    if (cartProduct.productId === data.productId) {
                         //add item to order
+                        const product = await this.productRepository.findOneOrFail({where: {id: data.productId}})
+                        if (product.quantity < cartProduct.quantity) {
+                            return {
+                                'success': false,
+                                'status': 400,
+                                'message': `Exceed product ${product.name} quantity. Please edit your item 's quantity !`
+                            }
+                        }
                         const checkout = this.orderProductRepository.create({
-                            productId: product.productId,
-                            quantity: product.quantity,
+                            productId: cartProduct.productId,
+                            quantity: cartProduct.quantity,
                             orderId: order.id
                         })
-                        checkout.product = await this.productRepository.findOneOrFail({where: {id: checkout.productId}})
+                        checkout.product = product
                         order.products.push(checkout)
                         await this.orderProductRepository.save(checkout)
                     }
@@ -200,10 +208,11 @@ export class CartService {
             })
             order = await this.orderRepository.save(order)
             order.getTotalAmount()
-            order.orderDate = order.paymentDate = order.completedDate = new Date()
+            order.orderDate = new Date()
             order.paymentMethod = paymentMethod
             const addedOrder = await this.orderRepository.save(order)
-            //TODO: Add delete cart items when checkout
+            await this.cartProductRepository.delete({cartId:user.cart.id})
+            //TODO: return total amount in cart to 0
             return {
                 'success': true,
                 'status': 200,
@@ -213,8 +222,8 @@ export class CartService {
         } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Bad request!'
+                'status': 500,
+                'message': 'Error occur!'
             }
         }
 

@@ -1,18 +1,20 @@
-
 import {Gender} from "../../utils/common/enum"
 import {
     IsDateString,
     IsDefined,
     IsEnum,
-    IsNotEmpty
+    IsNotEmpty, IsString
 } from "class-validator";
 export class EditProfile {
+
     @IsNotEmpty()
     @IsDefined()
+    @IsString()
     fullName: string
 
     @IsNotEmpty()
     @IsDefined()
+    @IsString()
     phone: string
 
     @IsDefined()
@@ -26,5 +28,6 @@ export class EditProfile {
 
     @IsDefined()
     @IsNotEmpty()
+    @IsString()
     address: string
 }

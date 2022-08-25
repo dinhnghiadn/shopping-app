@@ -9,7 +9,7 @@ export class Image extends BaseEntity {
     @Column()
     url: string
 
-    @Column()
+    @Column({nullable:true})
     ownerId: number
 
     @Column({type: 'enum', enum: Owner})

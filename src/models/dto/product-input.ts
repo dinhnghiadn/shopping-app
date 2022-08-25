@@ -22,9 +22,13 @@ export class ProductInput {
 
     @IsDefined()
     @IsNotEmpty()
-    @IsPositive()
+    @IsPositive({each: true})
     readonly categoryId: number[]
 
+    @IsDefined()
+    @IsNotEmpty()
+    @IsPositive({each: true})
+    readonly imageId: number[]
 
 
 }

@@ -45,9 +45,33 @@ export class AdminRoutes {
         this.router.get('/admin/product',
             (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
             (req: Request, res: Response) => this.adminController.getAllProducts(res))
-        this.router.post('/admin/product', upload.array('images'),
+        this.router.get('/admin/product/:id',
+            (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.getProductDetail(req,res))
+        this.router.post('/admin/product/images', upload.array('images'),
+            (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.addProductImages(req, res))
+
+        this.router.post('/admin/product',
             (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
             (req: Request, res: Response) => this.adminController.addProduct(req, res))
+        this.router.patch('/admin/product/:id',
+            (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.editProduct(req, res))
+        this.router.delete('/admin/product/:id',
+            (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.deleteProduct(req, res))
+
+        //Order routes
+        this.router.get('/admin/order',
+            (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.getAllOrders(res))
+        this.router.get('/admin/order/:id',
+            (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.getOrderDetail(req,res))
+        this.router.post('/admin/order/status/:id',
+            (req: Request, res: Response, next: NextFunction) => adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.changeOrderStatus(req,res))
 
         return this.router
     }

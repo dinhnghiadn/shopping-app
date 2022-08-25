@@ -32,8 +32,8 @@ export class ProductService {
         } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Bad request!'
+                'status': 500,
+                'message': 'Error occur!'
             }
         }
     }
@@ -57,8 +57,8 @@ export class ProductService {
         } catch (e) {
             return {
                 'success': false,
-                'status': 400,
-                'message': 'Bad request!'
+                'status': 500,
+                'message': 'Error occur!'
             }
         }
     }
