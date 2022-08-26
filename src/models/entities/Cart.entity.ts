@@ -1,12 +1,20 @@
 import {
-    AfterInsert, AfterLoad, AfterUpdate,
-    BaseEntity, BeforeInsert, BeforeUpdate, Column,
+    AfterInsert,
+    AfterLoad,
+    AfterUpdate,
+    BaseEntity,
+    BeforeInsert,
+    BeforeUpdate,
+    Column,
     CreateDateColumn,
-    Entity, OneToMany, OneToOne,
-    PrimaryGeneratedColumn, UpdateDateColumn
-} from "typeorm";
-import {User} from "./User.entity";
-import {CartProduct} from "./CartProduct.entity";
+    Entity,
+    OneToMany,
+    OneToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm'
+import { User } from './User.entity'
+import { CartProduct } from './CartProduct.entity'
 
 @Entity('carts')
 export class Cart extends BaseEntity {
@@ -19,21 +27,19 @@ export class Cart extends BaseEntity {
     @UpdateDateColumn()
     updateAt: Date
 
-    @Column({default:0})
+    @Column({ default: 0 })
     totalAmount: number
 
     @OneToOne(() => User, (user) => user.cart)
     user: User
 
-    @OneToMany(()=>CartProduct, (cartProduct) => cartProduct.cart,{eager:true})
+    @OneToMany(() => CartProduct, (cartProduct) => cartProduct.cart, { eager: true })
     products: CartProduct[]
 
     getTotalAmount(): void {
         // this.totalAmount = this.products.reduce((n, {bulkPrice}) => n + bulkPrice, 0)
-        if (this.products){
-            this.totalAmount = this.products.reduce((a,b) => a + b.bulkPrice,0)
-        }
-        else this.totalAmount = 0
-
+        if (this.products) {
+            this.totalAmount = this.products.reduce((a, b) => a + b.bulkPrice, 0)
+        } else this.totalAmount = 0
     }
 }

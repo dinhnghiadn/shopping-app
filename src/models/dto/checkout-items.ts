@@ -1,9 +1,8 @@
-import {IsDefined, IsNotEmpty} from "class-validator";
+import { IsDefined, IsNotEmpty, IsPositive } from 'class-validator'
 
 export class CheckoutItems {
-
     @IsDefined()
     @IsNotEmpty()
-    readonly productId: number;
-
+    @IsPositive()
+    readonly productId: number
 }
