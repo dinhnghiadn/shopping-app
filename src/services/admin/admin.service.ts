@@ -163,7 +163,7 @@ export class AdminService {
                     status: 200,
                     message: 'User status is not blocked!',
                 }
-            user.status = UserStatus.Inactive
+            user.status = UserStatus.Active
             user = await this.userRepository.save(user)
             return {
                 success: true,

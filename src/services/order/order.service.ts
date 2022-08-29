@@ -2,7 +2,7 @@ import { Repository } from 'typeorm'
 import { Order } from '../../models/entities/Order.entity'
 import { User } from '../../models/entities/User.entity'
 import { OrderStatus, PaymentMethod, PaymentStatus } from '../../utils/common/enum'
-import { sendPaymentSuccessfullyEmail } from '../../utils/common/email'
+import { sendPaymentEmail } from '../../utils/common/email'
 import { Product } from '../../models/entities/Product.entity'
 import Stripe from 'stripe'
 
@@ -96,7 +96,7 @@ export class OrderService {
             order.status = OrderStatus.Pending
             order = await this.orderRepository.save(order)
 
-            await sendPaymentSuccessfullyEmail(user.email, order)
+            await sendPaymentEmail(user.email, order, paymentUrl)
             return {
                 success: true,
                 status: 200,

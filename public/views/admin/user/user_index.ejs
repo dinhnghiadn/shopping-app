@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>User index</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>User list</h2>
+    <!--    <a href="/add" class="btn btn-sm btn-primary">Add User</a><br/><br/>-->
+    <table class="table table-dark table-striped ">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Last login</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% users.forEach(function(user){ %>
+            <tr onclick="getDetail(<%= user.id %>)">
+                <td><%= user.id %></td>
+                <td><%= user.username %></td>
+                <td><%= user.email %></td>
+                <td><%= user.role %></td>
+                <td><%= user.status %></td>
+                <td><%= user.lastLogin.toLocaleString() %></td>
+                <td onclick="event.cancelBubble=true; return false;">
+                    <div style="display: flex; gap: 10px">
+
+                        <button id="<%= user.id %>"
+                                class="btn btn-sm btn-success block-user"
+                        <% if (user.status !== 'ACTIVE' || user.role ===
+                                'ADMIN') { %>
+                                disabled
+                                <% } %>
+                        >Block
+                        </button>
+                        <button id="<%= user.id %>"
+                                class="btn btn-sm btn-success unblock-user"
+                        <% if (user.status !== 'BLOCKED') { %>
+                                disabled
+                                <% } %>
+                        >Unblock
+                        </button>
+                        <button
+                                id="<%= user.id %>"
+                                class="btn btn-sm btn-danger
+                                delete-user">Delete
+                        </button>
+
+                    </div>
+                </td>
+            </tr>
+        <% }); %>
+        </tbody>
+    </table>
+</div>
+<script src="../../../script/user/index.js"></script>
+</body>
+</html>

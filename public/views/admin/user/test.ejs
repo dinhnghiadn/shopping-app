@@ -1,0 +1,37 @@
+<div class="form-group">
+    <label>Payment method:</label>
+    <input type="text" class="form-control"
+           value="<%= order.paymentMethod %>"
+           disabled>
+    <label>Status:</label>
+    <input type="text" class="form-control"
+           value="<%= order.status %>"
+           disabled>
+
+    <label>Payment status:</label>
+    <input type="text" class="form-control"
+           value="<%= order.paymentStatus %>"
+           disabled>
+    <label>Order date:</label>
+    <input type="text" class="form-control"
+           value="<%= order.orderDate.toLocaleString() %>"
+           disabled>
+    <% if (order.paymentDate) {%>
+        <label>Payment date:</label>
+        <input type="text" class="form-control"
+               value="<%= order.paymentDate
+                       .toLocaleString() %>"
+               disabled>
+    <% } %>
+    <% if (order.completedDate) {%>
+        <label>Complete date:</label>
+        <input type="text" class="form-control"
+               value="<%= order.completedDate
+                       .toLocaleString() %>"
+               disabled>
+    <% } %>
+    <label>Total amount:</label>
+    <input type="text" class="form-control"
+           value="<%= order.totalAmount %>"
+           disabled>
+</div>

@@ -46,6 +46,8 @@ export class UserController {
             const user = result.resource as User
             if (user.role === Role.Admin) {
                 req.session.isAdmin = true
+                res.redirect('/admin/user/list')
+                return
             }
         }
         res.status(result.status).json(result)
