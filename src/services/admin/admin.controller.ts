@@ -56,12 +56,25 @@ export class AdminController {
 
     async getAllCategories(res: Response): Promise<void> {
         const result = await this.adminService.getAllCategories()
+        if (isSuccessResponse(result)) {
+            const categories = result.resources
+            res.render('admin/category/category_index', { categories })
+            return
+        }
         res.status(result.status).json(result)
     }
 
     async getCategoryDetail(req: Request, res: Response): Promise<void> {
         const id = parseInt(req.params.id as string)
         const result = await this.adminService.getCategoryDetail(id)
+
+        if (isSuccessResponse(result)) {
+            const category = result.resource
+            const image = result.image
+            // res.status(result.status).json(result)
+            res.render('admin/category/category_detail', { category, image })
+            return
+        }
         res.status(result.status).json(result)
     }
 
@@ -170,7 +183,11 @@ export class AdminController {
         res.status(result.status).json(result)
     }
 
-    async adminIndex(res: Response): Promise<void> {
+    async adminIndex(req: Request, res: Response): Promise<void> {
+        if (req.session.isAdmin) {
+            res.redirect('/admin/user')
+            return
+        }
         res.render('admin/index.ejs')
     }
 }

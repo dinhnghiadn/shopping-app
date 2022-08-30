@@ -30,7 +30,7 @@ export class Cart extends BaseEntity {
     @Column({ default: 0 })
     totalAmount: number
 
-    @OneToOne(() => User, (user) => user.cart)
+    @OneToOne(() => User, (user) => user.cart, { onDelete: 'CASCADE' })
     user: User
 
     @OneToMany(() => CartProduct, (cartProduct) => cartProduct.cart, { eager: true })

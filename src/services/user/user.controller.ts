@@ -34,6 +34,10 @@ export class UserController {
     }
 
     async login(req: Request, res: Response): Promise<void> {
+        // if (req.session.isAdmin) {
+        //     res.redirect('/admin/user')
+        //     return
+        // }
         const data = req.body
         const errors = await validate(plainToInstance(SignIn, data))
         if (errors.length > 0) {
@@ -46,7 +50,7 @@ export class UserController {
             const user = result.resource as User
             if (user.role === Role.Admin) {
                 req.session.isAdmin = true
-                res.redirect('/admin/user/list')
+                res.redirect('/admin/user')
                 return
             }
         }

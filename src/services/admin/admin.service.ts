@@ -84,34 +84,35 @@ export class AdminService {
     }
 
     async deleteUser(id: number) {
-        try {
-            const user = await this.userRepository.findOne({ where: { id } })
-            if (!user) {
-                return {
-                    success: false,
-                    status: 404,
-                    message: 'User not found!',
-                }
+        // try {
+        const user = await this.userRepository.findOne({ where: { id } })
+        if (!user) {
+            return {
+                success: false,
+                status: 404,
+                message: 'User not found!',
             }
-            if (user.status === UserStatus.Active)
-                return {
-                    success: true,
-                    status: 200,
-                    message: 'User is active, cant delete!',
-                }
-            await this.userRepository.remove(user)
+        }
+        if (user.status === UserStatus.Active)
             return {
                 success: true,
                 status: 200,
-                message: 'Delete user successfully!',
+                message: 'User is active, cant delete!',
             }
-        } catch (e) {
-            return {
-                success: false,
-                status: 500,
-                message: 'Error occur!',
-            }
+        //TODO: fix constraint delete
+        await this.userRepository.remove(user)
+        return {
+            success: true,
+            status: 200,
+            message: 'Delete user successfully!',
         }
+        // } catch (e) {
+        //     return {
+        //         success: false,
+        //         status: 500,
+        //         message: 'Error occur!',
+        //     }
+        // }
     }
 
     async blockUser(id: number) {
@@ -226,7 +227,8 @@ export class AdminService {
                 success: true,
                 status: 200,
                 message: 'Get category detail successfully!',
-                resource: { category, image },
+                resource: category,
+                image: image,
             }
         } catch (e) {
             return {

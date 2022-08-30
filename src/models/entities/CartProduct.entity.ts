@@ -1,17 +1,20 @@
 import {
-    AfterInsert, AfterUpdate,
-    BaseEntity, BeforeInsert, BeforeUpdate,
+    AfterInsert,
+    AfterUpdate,
+    BaseEntity,
+    BeforeInsert,
+    BeforeUpdate,
     Column,
     Entity,
     ManyToOne,
-    PrimaryGeneratedColumn
-} from "typeorm";
-import {Order} from "./Order.entity";
-import {Product} from "./Product.entity";
-import {Cart} from "./Cart.entity";
+    PrimaryGeneratedColumn,
+} from 'typeorm'
+import { Order } from './Order.entity'
+import { Product } from './Product.entity'
+import { Cart } from './Cart.entity'
 
 @Entity()
-export class CartProduct extends BaseEntity{
+export class CartProduct extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number
 
@@ -21,10 +24,10 @@ export class CartProduct extends BaseEntity{
     @Column()
     productId: number
 
-    @ManyToOne(() => Cart, (cart) => cart.products)
+    @ManyToOne(() => Cart, (cart) => cart.products, { onDelete: 'CASCADE' })
     cart: Cart
 
-    @ManyToOne(() => Product, (product) => product.carts,{eager:true})
+    @ManyToOne(() => Product, (product) => product.carts, { eager: true })
     product: Product
 
     @Column()
@@ -38,7 +41,7 @@ export class CartProduct extends BaseEntity{
 
     @BeforeInsert()
     @BeforeUpdate()
-    getBulkPrice() : void {
+    getBulkPrice(): void {
         this.individualPrice = this.product.price
         this.bulkPrice = this.quantity * this.individualPrice
     }

@@ -38,7 +38,7 @@ export class Order extends BaseEntity {
     @Column({ default: 0 })
     totalAmount: number
 
-    @ManyToOne(() => User, (user) => user.orders)
+    @ManyToOne(() => User, (user) => user.orders, { onDelete: 'CASCADE' })
     user: User
 
     @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.order, { eager: true })

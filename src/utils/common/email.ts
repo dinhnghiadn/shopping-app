@@ -100,7 +100,7 @@ export const sendReminderEmail = async (email: string, cart: Cart) => {
             product.product.name +
             ' - Price: ' +
             product.product.price +
-            '$ - Quantity ' +
+            '$ - Quantity: ' +
             product.quantity +
             '</li>'
     })

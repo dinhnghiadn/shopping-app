@@ -168,6 +168,7 @@ export class UserService {
                 expiresIn: '7d',
             })
             user.lastLogin = new Date()
+            user.status = UserStatus.Active
             user = await this.userRepository.save(user)
             return {
                 success: true,

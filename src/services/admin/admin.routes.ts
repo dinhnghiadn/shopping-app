@@ -8,11 +8,11 @@ export class AdminRoutes {
     getRoutes(): Router {
         //Index
         this.router.get('/admin', (req: Request, res: Response) =>
-            this.adminController.adminIndex(res)
+            this.adminController.adminIndex(req, res)
         )
         //User routes
         this.router.get(
-            '/admin/user/list',
+            '/admin/user',
             (req: Request, res: Response, next: NextFunction) =>
                 adminAuth(req, res, next),
             (req: Request, res: Response) => this.adminController.getAllUsers(res)
@@ -63,7 +63,7 @@ export class AdminRoutes {
                 adminAuth(req, res, next),
             (req: Request, res: Response) => this.adminController.addCategory(req, res)
         )
-        this.router.patch(
+        this.router.put(
             '/admin/category/:id',
             upload.single('image'),
             (req: Request, res: Response, next: NextFunction) =>
@@ -106,7 +106,7 @@ export class AdminRoutes {
                 adminAuth(req, res, next),
             (req: Request, res: Response) => this.adminController.addProduct(req, res)
         )
-        this.router.patch(
+        this.router.put(
             '/admin/product/:id',
             (req: Request, res: Response, next: NextFunction) =>
                 adminAuth(req, res, next),
