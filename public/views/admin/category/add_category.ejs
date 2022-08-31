@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Category detail</title>
+    <title>Add category</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
@@ -15,52 +15,29 @@
     <%- include('../../partials/sidebar')%>
     <div class="detail-box">
         <div style="text-align: center"><h2 >Category detail</h2></div>
-        <form id="my-form" method="" >
-            <div class="form-group">
-                <label>Id:</label>
-                <input type="text" class="form-control"
-                       name="id"
-                       value="<%= category.id %>"
-                       hidden>
-                <input type="text" class="form-control"
-                       value="<%= category.id %>"
-                       disabled>
-            </div>
+        <form id="my-form" >
             <div class="form-group">
                 <label>Name:</label>
                 <input type="text" class="form-control"
-                       name="name"
-                       value="<%= category.name %>">
+                       name="name">
             </div>
             <label>Image:</label>
-            <% if (image) {%>
-                <img class="detail-image"
-                     src="<%=image
-                        .url%>">
-            <%}%>
             <div class="form-group">
                 <input type="file" class="form-control" id="selectedFile" name="image">
             </div>
 
-
             <div class="form-group">
                 <label>Description:</label>
                 <textarea class="form-control" rows="4" cols="50"
-                          name="description"><%= category.description%></textarea>
+                          name="description"></textarea>
             </div>
-            <div class="form-group">
-                <label>Number of products:</label>
-                <input type="text" class="form-control"
-                       value="<%= category.numberOfProducts %>"
-                       disabled>
-            </div>
-            <button id="<%=category.id%>" type="submit" class="btn btn-primary
-            edit-category
+            <button type="submit" class="btn btn-primary
+            add-category
             ">Save</button>
         </form>
     </div>
 </div>
 
-<script src="../../../script/category/detail.js"></script>
+<script src="../../../script/category/add.js"></script>
 </body>
 </html>

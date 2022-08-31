@@ -11,7 +11,7 @@ const app: Express = express()
 // Middleware for parsing bodies from URL to request
 app.use(
     express.urlencoded({
-        extended: false,
+        extended: true,
     })
 )
 

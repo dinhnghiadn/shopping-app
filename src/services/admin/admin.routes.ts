@@ -50,19 +50,27 @@ export class AdminRoutes {
             (req: Request, res: Response) => this.adminController.getAllCategories(res)
         )
         this.router.get(
+            '/admin/category/add',
+            (req: Request, res: Response, next: NextFunction) =>
+                adminAuth(req, res, next),
+            (req: Request, res: Response) =>
+                this.adminController.addCategoryIndex(req, res)
+        )
+        this.router.post(
+            '/admin/category/add',
+            upload.single('image'),
+            (req: Request, res: Response, next: NextFunction) =>
+                adminAuth(req, res, next),
+            (req: Request, res: Response) => this.adminController.addCategory(req, res)
+        )
+        this.router.get(
             '/admin/category/:id',
             (req: Request, res: Response, next: NextFunction) =>
                 adminAuth(req, res, next),
             (req: Request, res: Response) =>
                 this.adminController.getCategoryDetail(req, res)
         )
-        this.router.post(
-            '/admin/category',
-            upload.single('image'),
-            (req: Request, res: Response, next: NextFunction) =>
-                adminAuth(req, res, next),
-            (req: Request, res: Response) => this.adminController.addCategory(req, res)
-        )
+
         this.router.put(
             '/admin/category/:id',
             upload.single('image'),
@@ -85,23 +93,31 @@ export class AdminRoutes {
             (req: Request, res: Response) => this.adminController.getAllProducts(res)
         )
         this.router.get(
+            '/admin/product/add',
+            (req: Request, res: Response, next: NextFunction) =>
+                adminAuth(req, res, next),
+            (req: Request, res: Response) =>
+                this.adminController.addProductIndex(req, res)
+        )
+        this.router.get(
             '/admin/product/:id',
             (req: Request, res: Response, next: NextFunction) =>
                 adminAuth(req, res, next),
             (req: Request, res: Response) =>
                 this.adminController.getProductDetail(req, res)
         )
-        this.router.post(
-            '/admin/product/images',
-            upload.array('images'),
-            (req: Request, res: Response, next: NextFunction) =>
-                adminAuth(req, res, next),
-            (req: Request, res: Response) =>
-                this.adminController.addProductImages(req, res)
-        )
+        // this.router.post(
+        //     '/admin/product/images',
+        //     upload.array('images'),
+        //     (req: Request, res: Response, next: NextFunction) =>
+        //         adminAuth(req, res, next),
+        //     (req: Request, res: Response) =>
+        //         this.adminController.addProductImages(req, res)
+        // )
 
         this.router.post(
-            '/admin/product',
+            '/admin/product/add',
+            upload.array('images'),
             (req: Request, res: Response, next: NextFunction) =>
                 adminAuth(req, res, next),
             (req: Request, res: Response) => this.adminController.addProduct(req, res)

@@ -82,16 +82,30 @@ h1,h2,h3,h4,h5,h6,p,ul,ol{ margin:0px; padding:0px;}
     z-index: 100;
 }
 .table-box {
-    margin: auto;
+    margin: 0 auto;
     align-items: center;
     justify-content: center;
     text-align: center;
+
 }
 
 .detail-box {
     width: 50%;
-    margin: auto;
+    margin: 0 auto;
     align-items: center;
     justify-content: center;
 }
+.detail-image {
+    margin-left: 5px;
+    width: 150px;
+    height: 150px
+}
 
+.thumbnail-image {
+    width: 100px;
+    height: 100px
+}
+
+td {
+    vertical-align: middle !important;
+}

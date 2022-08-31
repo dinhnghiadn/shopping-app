@@ -1,13 +1,17 @@
 import {
     BaseEntity,
-    Column, CreateDateColumn,
-    Entity, JoinTable,
-    ManyToMany, OneToMany,
-    PrimaryGeneratedColumn, UpdateDateColumn
-} from "typeorm";
-import {Category} from "./Category.entity";
-import {OrderProduct} from "./OrderProduct.entity";
-import {CartProduct} from "./CartProduct.entity";
+    Column,
+    CreateDateColumn,
+    Entity,
+    JoinTable,
+    ManyToMany,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm'
+import { Category } from './Category.entity'
+import { OrderProduct } from './OrderProduct.entity'
+import { CartProduct } from './CartProduct.entity'
 
 @Entity('products')
 export class Product extends BaseEntity {
@@ -32,13 +36,16 @@ export class Product extends BaseEntity {
     @UpdateDateColumn()
     updateAt: Date
 
-    @ManyToMany(() => Category, (category) => category.products,{cascade: ["insert", "update"]})
-    @JoinTable({name:'product_category'})
+    @ManyToMany(() => Category, (category) => category.products, {
+        eager: true,
+        cascade: ['insert', 'update'],
+    })
+    @JoinTable({ name: 'product_category' })
     categories: Category[]
 
-    @OneToMany(()=>OrderProduct, (orderProduct) => orderProduct.product)
+    @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.product)
     orders: OrderProduct[]
 
-    @OneToMany(()=>CartProduct, (cartProduct) => cartProduct.product)
+    @OneToMany(() => CartProduct, (cartProduct) => cartProduct.product)
     carts: CartProduct[]
 }

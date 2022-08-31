@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Category index</title>
+    <title>Product index</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
@@ -15,54 +15,66 @@
 <div style="display: flex;height: 100vh">
     <%- include('../../partials/sidebar')%>
     <div class="table-box">
-        <h2 style="text-align: center;justify-content: center">Category
+        <h2 style="text-align: center;justify-content: center">Product
             list</h2>
-        <div style="text-align: left"><a href="/admin/category/add" class="btn
+        <div style="text-align: left"><a href="/admin/product/add" class="btn
         btn-sm btn-primary">Add
-                category</a><br/><br/></div>
+                product</a><br/><br/></div>
 
         <table class="table table-dark table-striped ">
             <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Thumbnail</th>
+                <th>Price</th>
+                <th>Quantity</th>
                 <th>Description</th>
-                <th>Number of products</th>
                 <th>Action</th>
 
             </tr>
             </thead>
             <tbody>
-            <% categories.forEach(function(category){ %>
-                <tr>
-                    <td><%= category.id %></td>
+            <% products.forEach(function(product){ %>
+                <tr >
+                    <td><%= product.id %></td>
                     <td><a href="javascript:void(0)"
-                           onclick="getDetail(<%= category.id %>)"><%= category
+                           onclick="getDetail(<%= product.id %>)"><%= product
                                     .name
                             %></a></td>
-                    <td><%= category.description %></td>
-                    <td><%= category.numberOfProducts %></td>
+                    <% const image =images.find((image) => image.ownerId === product
+                            .id) %>
+                    <%if (image) {%>
+                    <td><img class="thumbnail-image"
+                             src="<%=image
+                                     .url%>"></td>
+                    <%} else {%>
+                        <td></td>
+                    <%}%>
+                    <td><%= product.price %></td>
+                    <td><%= product.quantity %></td>
+                    <td><%= product.description %></td>
 
                     <td>
                         <div>
-                            <button id="<%= category.id %>"
-                                    class="btn btn-sm btn-success block-user"
-                                    onclick="getDetail(<%=category.id%>)"
+                            <button id="<%= product.id %>"
+                                    class="btn btn-sm btn-success"
+                                    onclick="getDetail(<%=product.id%>)"
                             >Edit
                             </button>
 
                             <button class="btn btn-sm btn-danger"
                                     data-toggle="modal"
                                     data-target="#modal-delete-category-<%=
-                                        category
-                                            .id %>"
+                                        product
+                                                .id %>"
                             >
                                 Delete
                             </button>
                         </div>
                     </td>
                 </tr>
-                <div class="modal fade" id="modal-delete-category-<%= category.id
+                <div class="modal fade" id="modal-delete-category-<%= product.id
                 %>"
                      tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
                      aria-hidden="true">
@@ -78,15 +90,15 @@
                             </div>
                             <div class="modal-body">
                                 Do you want to delete this category with Id
-                                <%= category.id %> ?
+                                <%= product.id %> ?
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary"
                                         data-dismiss="modal">No
                                 </button>
-                                <button id="<%= category.id %>" type="button" class="btn
+                                <button id="<%= product.id %>" type="button" class="btn
                             btn-primary
-                            delete-category
+                            delete-product
                             ">Yes
                                 </button>
                             </div>
@@ -99,6 +111,6 @@
         </table>
     </div>
 </div>
-<script src="../../../script/category/index.js"></script>
+<script src="../../../script/product/index.js"></script>
 </body>
 </html>

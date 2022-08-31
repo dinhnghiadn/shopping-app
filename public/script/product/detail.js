@@ -5,7 +5,7 @@ $(function () {
         const id = data.get('id')
         $.ajax({
             type: 'put',
-            url: '/admin/category/' + id,
+            url: '/admin/product/' + id,
             data: data,
             cache: false,
             processData: false,

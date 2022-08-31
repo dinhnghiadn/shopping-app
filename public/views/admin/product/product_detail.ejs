@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Category detail</title>
+    <title>Product detail</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet"
@@ -14,53 +14,57 @@
 <div style="display: flex;height: 100vh">
     <%- include('../../partials/sidebar')%>
     <div class="detail-box">
-        <div style="text-align: center"><h2 >Category detail</h2></div>
+        <div style="text-align: center"><h2 >Product detail</h2></div>
         <form id="my-form" method="" >
             <div class="form-group">
                 <label>Id:</label>
                 <input type="text" class="form-control"
                        name="id"
-                       value="<%= category.id %>"
+                       value="<%= product.id %>"
                        hidden>
                 <input type="text" class="form-control"
-                       value="<%= category.id %>"
+                       value="<%= product.id %>"
                        disabled>
             </div>
             <div class="form-group">
                 <label>Name:</label>
                 <input type="text" class="form-control"
                        name="name"
-                       value="<%= category.name %>">
+                       value="<%= product.name %>">
+            </div>
+            <div class="form-group">
+                <label>Price:</label>
+                <input type="text" class="form-control"
+                       name="price"
+                       value="<%= product.price %>">
+            </div>
+            <div class="form-group">
+                <label>Quantity:</label>
+                <input type="text" class="form-control"
+                       name="quantity"
+                       value="<%= product.quantity %>">
             </div>
             <label>Image:</label>
-            <% if (image) {%>
-                <img class="detail-image"
-                     src="<%=image
-                        .url%>">
-            <%}%>
-            <div class="form-group">
-                <input type="file" class="form-control" id="selectedFile" name="image">
-            </div>
-
+            <% if (images) {
+                images.forEach(function(image){ %>
+            <img class="detail-image"
+                 src="<%=image
+                         .url%>">
+            <%})}%>
 
             <div class="form-group">
                 <label>Description:</label>
                 <textarea class="form-control" rows="4" cols="50"
-                          name="description"><%= category.description%></textarea>
+                          name="description"><%= product.description%></textarea>
             </div>
-            <div class="form-group">
-                <label>Number of products:</label>
-                <input type="text" class="form-control"
-                       value="<%= category.numberOfProducts %>"
-                       disabled>
-            </div>
-            <button id="<%=category.id%>" type="submit" class="btn btn-primary
-            edit-category
+
+            <button id="<%=product.id%>" type="submit" class="btn btn-primary
+            edit-product
             ">Save</button>
         </form>
     </div>
 </div>
 
-<script src="../../../script/category/detail.js"></script>
+<script src="../../../script/product/detail.js"></script>
 </body>
 </html>

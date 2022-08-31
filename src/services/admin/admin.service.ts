@@ -192,6 +192,7 @@ export class AdminService {
                     message: 'Categories list is empty!',
                 }
             }
+
             return {
                 success: true,
                 status: 200,
@@ -261,10 +262,8 @@ export class AdminService {
                 success: true,
                 status: 201,
                 message: 'Create category successfully!',
-                resource: {
-                    category: savedCategory,
-                    image: savedImage,
-                },
+                resource: savedCategory,
+                image: savedImage,
             }
         } catch (e) {
             return {
@@ -277,62 +276,66 @@ export class AdminService {
 
     async editCategory(
         id: number,
-        data: CategoryEdit,
+        data?: CategoryEdit,
         file?: Express.Multer.File
     ): Promise<SuccessResponse | ErrorResponse> {
-        try {
-            let existCategory = await this.categoryRepository.findOne({ where: { id } })
-            if (!existCategory) {
-                return {
-                    success: false,
-                    status: 404,
-                    message: 'Category not found!',
-                }
-            }
-
-            if (file) {
-                const uploadResult = await uploadImage(file, 'categories')
-                if (isSuccessResponse(uploadResult)) {
-                    const imageUrl: string = uploadResult.resource as string
-                    const existImage = await this.imageRepository.findOne({
-                        where: {
-                            belongTo: Owner.Category,
-                            ownerId: existCategory.id,
-                        },
-                    })
-                    if (existImage) {
-                        await deleteImage(existImage.url)
-                        existImage.url = imageUrl
-                        await this.imageRepository.save(existImage)
-                    } else {
-                        const image = this.imageRepository.create({
-                            url: imageUrl,
-                            belongTo: Owner.Category,
-                            ownerId: existCategory.id,
-                        })
-                        await this.imageRepository.save(image)
-                    }
-                }
-            }
-            await this.categoryRepository.update(
-                { id },
-                {
-                    name: data.name,
-                    description: data.description,
-                }
-            )
-            return {
-                success: true,
-                status: 200,
-                message: 'Update category successfully!',
-            }
-        } catch (e) {
+        // try {
+        let existCategory = await this.categoryRepository.findOne({ where: { id } })
+        if (!existCategory) {
             return {
                 success: false,
-                status: 500,
-                message: 'Error occur!',
+                status: 404,
+                message: 'Category not found!',
             }
         }
+
+        if (file) {
+            const uploadResult = await uploadImage(file, 'categories')
+            if (isSuccessResponse(uploadResult)) {
+                const imageUrl: string = uploadResult.resource as string
+                const existImage = await this.imageRepository.findOne({
+                    where: {
+                        belongTo: Owner.Category,
+                        ownerId: existCategory.id,
+                    },
+                })
+                if (existImage) {
+                    await deleteImage(existImage.url)
+                    existImage.url = imageUrl
+                    await this.imageRepository.save(existImage)
+                } else {
+                    const image = this.imageRepository.create({
+                        url: imageUrl,
+                        belongTo: Owner.Category,
+                        ownerId: existCategory.id,
+                    })
+                    await this.imageRepository.save(image)
+                }
+            }
+        }
+        if (data) {
+            if (Object.keys(data).length > 0) {
+                await this.categoryRepository.update(
+                    { id },
+                    {
+                        name: data!.name,
+                        description: data!.description,
+                    }
+                )
+            }
+        }
+        return {
+            success: true,
+            status: 200,
+            message: 'Update category successfully!',
+        }
+        // } catch (e) {
+        //     return {
+        //         success: false,
+        //         status: 500,
+        //         message: 'Error occur!',
+        //     }
+        // }
     }
 
     async deleteCategory(id: number) {
@@ -388,11 +391,25 @@ export class AdminService {
                     message: 'Products list is empty!',
                 }
             }
+            let images: Image[] = []
+            for (const product of listProducts) {
+                const image = await this.imageRepository.findOne({
+                    where: {
+                        belongTo: Owner.Product,
+                        primary: true,
+                        ownerId: product.id,
+                    },
+                })
+                if (image) {
+                    images.push(image)
+                }
+            }
             return {
                 success: true,
                 status: 200,
                 message: 'Get products list successfully!',
                 resources: listProducts,
+                images,
             }
         } catch (e) {
             return {
@@ -423,7 +440,8 @@ export class AdminService {
                 success: true,
                 status: 200,
                 message: 'Get product detail successfully!',
-                resource: { product, images },
+                resource: product,
+                images: images,
             }
         } catch (e) {
             return {
@@ -467,20 +485,35 @@ export class AdminService {
         }
     }
 
-    async addProduct(data: ProductInput) {
+    async addProduct(data: ProductInput, files: Express.Multer.File[]) {
         try {
             const product = this.productRepository.create(data)
             product.categories = await this.categoryRepository.findBy({
                 id: In(data.categoryId),
             })
             const savedProduct = await this.productRepository.save(product)
-            const productImages = await this.imageRepository.findBy({
-                id: In(data.imageId),
-            })
-            productImages.forEach((image) => {
-                image.ownerId = savedProduct.id
-            })
-            const savedImages = await this.imageRepository.save(productImages)
+            let savedImages: Image[] = []
+            for (const file of files) {
+                const uploadResult = await uploadImage(file, `products`)
+                if (isSuccessResponse(uploadResult)) {
+                    const imageUrl: string = uploadResult.resource as string
+                    const image = this.imageRepository.create({
+                        url: imageUrl,
+                        belongTo: Owner.Product,
+                        primary: false,
+                        ownerId: savedProduct.id,
+                    })
+                    const savedImage = await this.imageRepository.save(image)
+                    savedImages.push(savedImage)
+                }
+            }
+            // const productImages = await this.imageRepository.findBy({
+            //     id: In(data.imageId),
+            // })
+            // productImages.forEach((image) => {
+            //     image.ownerId = savedProduct.id
+            // })
+            // const savedImages = await this.imageRepository.save(productImages)
             return {
                 success: true,
                 status: 201,

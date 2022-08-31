@@ -76,15 +76,17 @@ export const sendPaymentEmail = async (
         let text = `Hi ${order.user.username}, your transaction was successful. Here is the detail: 
             \n- Amount: ${order.totalAmount}$.
             \n- Method: ${order.paymentMethod}.
-            \n- Status: ${order.paymentStatus}.`
+            \n- Status: ${order.paymentStatus}.
+            `
         if (url) {
-            text += `\n- Payment url: ${url}`
+            text += `\n- Payment url: ${url}
+            `
         }
         await transporter.sendMail({
             from: '"Shopping app" <shopping-app@example.com>',
             to: email,
             subject: 'Your payment was successfully processed',
-            text,
+            text: text + `\n- Thank you for your billing`,
         })
         console.log('New payment email sent successfully!')
     } catch (e) {

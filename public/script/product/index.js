@@ -1,9 +1,9 @@
 $(document).ready(function () {
-    $('.delete-category').click(function () {
+    $('.delete-product').click(function () {
         var del_id = $(this).attr('id')
         $.ajax({
             type: 'DELETE',
-            url: '/admin/category/' + del_id,
+            url: '/admin/product/' + del_id,
             success: function (data) {
                 location.reload()
             },
@@ -12,5 +12,5 @@ $(document).ready(function () {
 })
 
 function getDetail(id) {
-    location.href = `/admin/category/${id}`
+    location.href = `/admin/product/${id}`
 }

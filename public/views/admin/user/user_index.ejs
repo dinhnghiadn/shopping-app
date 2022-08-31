@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<div style="display: flex">
+<div style="display: flex;height: 100vh">
     <%- include('../../partials/sidebar')%>
     <div class="table-box">
         <h2 style="text-align: center;justify-content: center">User list</h2>
@@ -63,7 +63,8 @@
 
                             <button class="btn btn-sm btn-danger"
                                     data-toggle="modal"
-                                    data-target="#modal-edit-user-<%= user.id %>"
+                                    data-target="#modal-delete-user-<%= user.id
+                                    %>"
                             <% if (user.status === 'ACTIVE' || user.role ===
                                     'ADMIN' ) { %>
                                     disabled
@@ -74,7 +75,7 @@
                         </div>
                     </td>
                 </tr>
-                <div class="modal fade" id="modal-edit-user-<%= user.id %>"
+                <div class="modal fade" id="modal-delete-user-<%= user.id %>"
                      tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
                      aria-hidden="true">
                     <div class="modal-dialog" role="document">
