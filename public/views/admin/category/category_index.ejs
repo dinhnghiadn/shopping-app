@@ -26,6 +26,7 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Image</th>
                 <th>Description</th>
                 <th>Number of products</th>
                 <th>Action</th>
@@ -40,6 +41,16 @@
                            onclick="getDetail(<%= category.id %>)"><%= category
                                     .name
                             %></a></td>
+                    <% const image =images.find((image) => image.ownerId ===
+                            category.id
+                    ) %>
+                    <%if (image) {%>
+                    <td><img class="thumbnail-image"
+                             src="<%=image
+                                     .url%>"></td>
+                    <%} else {%>
+                        <td></td>
+                    <%}%>
                     <td><%= category.description %></td>
                     <td><%= category.numberOfProducts %></td>
 

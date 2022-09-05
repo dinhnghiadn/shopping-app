@@ -1,40 +1,37 @@
 export enum Role {
-    User = "USER",
-    Admin = "ADMIN"
+    User = 'USER',
+    Admin = 'ADMIN',
 }
 export enum Gender {
-    Male = "MALE",
-    Female = "FEMALE"
+    Male = 'MALE',
+    Female = 'FEMALE',
 }
 export enum Owner {
-    User = "USER",
-    Product = "PRODUCT",
-    Category = "CATEGORY",
-
+    User = 'USER',
+    Product = 'PRODUCT',
+    Category = 'CATEGORY',
 }
 
-
 export enum UserStatus {
-    Active= "ACTIVE",
-    NotVerified = "NOT_VERIFIED",
-    Inactive= "INACTIVE",
-    Blocked = "BLOCKED",
-
+    Active = 'ACTIVE',
+    NotVerified = 'NOT_VERIFIED',
+    Inactive = 'INACTIVE',
+    Blocked = 'BLOCKED',
 }
 
 export enum PaymentMethod {
-    Cash = "CASH",
-    Visa = "VISA"
+    Cash = 'CASH',
+    Visa = 'VISA',
 }
 
 export enum OrderStatus {
-    NotConfirmed = "NOT_CONFIRMED",
-    Pending= "PENDING",
-    Completed = "COMPLETED",
+    NotConfirmed = 'NOT_CONFIRMED',
+    Pending = 'PENDING',
+    Completed = 'COMPLETED',
 }
 
 export enum PaymentStatus {
-    Pending= "PENDING",
-    Success = "SUCCESS",
+    Pending = 'PENDING',
+    Success = 'SUCCESS',
+    Cancel = 'CANCEL',
 }
-

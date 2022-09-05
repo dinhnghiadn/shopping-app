@@ -58,7 +58,8 @@ export class AdminController {
         const result = await this.adminService.getAllCategories()
         if (isSuccessResponse(result)) {
             const categories = result.resources
-            res.render('admin/category/category_index', { categories })
+            const images = result.images
+            res.render('admin/category/category_index', { categories, images })
             return
         }
         res.status(result.status).json(result)
@@ -136,12 +137,6 @@ export class AdminController {
         res.status(result.status).json(result)
     }
 
-    // async addProductImages(req: Request, res: Response): Promise<void> {
-    //     const files = req.files as Express.Multer.File[]
-    //     const result = await this.adminService.addProductImages(files)
-    //     res.status(result.status).json(result)
-    // }
-
     async addProduct(req: Request, res: Response): Promise<void> {
         const files = req.files as Express.Multer.File[]
         const data = req.body
@@ -161,6 +156,9 @@ export class AdminController {
     async editProduct(req: Request, res: Response): Promise<void> {
         const id: number = parseInt(req.params.id as string)
         const data = req.body
+        data.price = parseInt(data.price)
+        data.quantity = parseInt(data.quantity)
+        data.thumbnailId = parseInt(data.thumbnailId)
         const errors = await validate(plainToInstance(ProductEdit, data))
         if (errors.length > 0) {
             let messages = JSON.stringify(errors.map((error) => error.constraints))

@@ -42,6 +42,7 @@ export class UserRoutes {
         )
         this.router.post(
             '/user/avatar',
+            upload.single('image'),
             (req: Request, res: Response, next: NextFunction) =>
                 auth(req, res, next, this.userController.userService.userRepository),
             (req: Request, res: Response) => this.userController.uploadAvatar(req, res)

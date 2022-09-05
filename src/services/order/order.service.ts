@@ -41,6 +41,7 @@ export class OrderService {
             }
             const products: Product[] = []
             let paymentUrl
+            //TODO: add transactions
             for (const orderProduct of order.products) {
                 const product = await this.productRepository.findOneOrFail({
                     where: { id: orderProduct.productId },
@@ -87,6 +88,7 @@ export class OrderService {
                         }
                     }),
                     mode: 'payment',
+                    //TODO: add endpoint for complete order
                     success_url: `http://${HOST}:${PORT}/success-payment.html`,
                     cancel_url: `http://${HOST}:${PORT}/cancel-payment.html`,
                 })

@@ -23,9 +23,11 @@
             </div>
             <label>Image:</label>
             <div class="form-group">
-                <input type="file" class="form-control" id="selectedFile" name="image">
+                <input type="file" class="form-control" id="selectedFile"
+                       name="image"
+                       oninput="pic.src=window.URL.createObjectURL(this.files[0])">
             </div>
-
+            <img id="pic" alt="" width="100px" height="100px" />
             <div class="form-group">
                 <label>Description:</label>
                 <textarea class="form-control" rows="4" cols="50"

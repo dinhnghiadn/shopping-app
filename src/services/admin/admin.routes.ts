@@ -124,6 +124,7 @@ export class AdminRoutes {
         )
         this.router.put(
             '/admin/product/:id',
+            upload.single('image'),
             (req: Request, res: Response, next: NextFunction) =>
                 adminAuth(req, res, next),
             (req: Request, res: Response) => this.adminController.editProduct(req, res)

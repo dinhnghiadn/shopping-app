@@ -192,12 +192,25 @@ export class AdminService {
                     message: 'Categories list is empty!',
                 }
             }
+            let images: Image[] = []
+            for (const category of listCategories) {
+                const image = await this.imageRepository.findOne({
+                    where: {
+                        belongTo: Owner.Category,
+                        ownerId: category.id,
+                    },
+                })
+                if (image) {
+                    images.push(image)
+                }
+            }
 
             return {
                 success: true,
                 status: 200,
                 message: 'Get categories list successfully!',
                 resources: listCategories,
+                images,
             }
         } catch (e) {
             return {
@@ -491,6 +504,9 @@ export class AdminService {
             product.categories = await this.categoryRepository.findBy({
                 id: In(data.categoryId),
             })
+            for (const category of product.categories) {
+                category.numberOfProducts++
+            }
             const savedProduct = await this.productRepository.save(product)
             let savedImages: Image[] = []
             for (const file of files) {
@@ -507,13 +523,7 @@ export class AdminService {
                     savedImages.push(savedImage)
                 }
             }
-            // const productImages = await this.imageRepository.findBy({
-            //     id: In(data.imageId),
-            // })
-            // productImages.forEach((image) => {
-            //     image.ownerId = savedProduct.id
-            // })
-            // const savedImages = await this.imageRepository.save(productImages)
+
             return {
                 success: true,
                 status: 201,
@@ -614,6 +624,11 @@ export class AdminService {
                 await Promise.all(existImages.map((image) => deleteImage(image.url)))
                 await this.imageRepository.remove(existImages)
             }
+
+            for (const category of existProduct.categories) {
+                category.numberOfProducts--
+            }
+            await this.productRepository.save(existProduct)
             await this.productRepository.remove(existProduct)
             return {
                 success: true,

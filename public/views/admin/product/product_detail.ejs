@@ -48,8 +48,13 @@
             <% if (images) {
                 images.forEach(function(image){ %>
             <img class="detail-image"
+                 <% if (image.primary) {%>
+                    style="border:3px solid #555;"
+                 <%}%>
                  src="<%=image
                          .url%>">
+            <input type="radio"  value="<%=image.id%>"
+                   name="thumbnailId" >
             <%})}%>
 
             <div class="form-group">

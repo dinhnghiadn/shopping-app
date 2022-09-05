@@ -206,6 +206,7 @@ export class CartService {
                         'User dont have cart or cart does not contain' + ' any items!',
                 }
             }
+            //TODO: add transaction
             let order: Order = new Order()
             order.products = []
             user.orders.push(order)
@@ -266,7 +267,7 @@ export class CartService {
     startCronJob() {
         const reminder = new cron.CronJob({
             // Change time below
-            cronTime: '00 24 17 * * *',
+            cronTime: '00 00 15 * * *',
             onTick: async () => {
                 //Remind cart items for user
                 const users = await this.userRepository.find()
