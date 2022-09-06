@@ -23,9 +23,6 @@ export class Order extends BaseEntity {
     @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.NotConfirmed })
     status: OrderStatus
 
-    @Column({ type: 'enum', enum: PaymentStatus, nullable: true })
-    paymentStatus: PaymentStatus
-
     @Column({ nullable: true })
     orderDate: Date
 

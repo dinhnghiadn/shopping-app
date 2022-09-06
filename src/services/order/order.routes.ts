@@ -12,7 +12,12 @@ export class OrderRoutes {
                 auth(req, res, next, this.orderController.orderService.userRepository),
             (req: Request, res: Response) => this.orderController.complete(req, res)
         )
-
+        this.router.get('/order/success-payment', (req: Request, res: Response) =>
+            this.orderController.successPayment(req, res)
+        )
+        this.router.get('/order/cancel-payment', (req: Request, res: Response) =>
+            this.orderController.cancelPayment(req, res)
+        )
         return this.router
     }
 }

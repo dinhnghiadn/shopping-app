@@ -76,7 +76,7 @@ export const sendPaymentEmail = async (
         let text = `Hi ${order.user.username}, your transaction was successful. Here is the detail: 
             \n- Amount: ${order.totalAmount}$.
             \n- Method: ${order.paymentMethod}.
-            \n- Status: ${order.paymentStatus}.
+            \n- Status: ${order.status}.
             `
         if (url) {
             text += `\n- Payment url: ${url}

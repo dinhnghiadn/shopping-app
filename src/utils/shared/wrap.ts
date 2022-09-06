@@ -40,7 +40,8 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
     const orderService = new OrderService(
         dataSource.getRepository('Order'),
         dataSource.getRepository('Product'),
-        dataSource.getRepository('User')
+        dataSource.getRepository('User'),
+        dataSource.entityManager
     )
     const orderController = new OrderController(orderService)
     new OrderRoutes(router, orderController).getOrderRoutes()
