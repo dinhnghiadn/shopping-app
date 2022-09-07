@@ -276,7 +276,7 @@ export class CartService {
                         sendReminderEmail(user.email, user.cart)
                     }
                 })
-                console.log('Cron job is running...')
+                console.log('Reminder Cron job is running...')
             },
             start: true,
             timeZone: 'Asia/Ho_Chi_Minh',

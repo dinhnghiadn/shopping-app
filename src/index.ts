@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { DatabaseConnection } from './utils/database/db'
-import express, { Express } from 'express'
+import express, { Express, NextFunction, Request, Response } from 'express'
 import { wrap } from './utils/shared/wrap'
 import { sessionMiddleware } from './utils/common/session'
 import path from 'path'
@@ -16,7 +16,13 @@ app.use(
 )
 
 // Middleware for parsing json objects to request
-app.use(express.json())
+app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.originalUrl.startsWith('/order/result')) {
+        next()
+    } else {
+        express.json()(req, res, next)
+    }
+})
 app.use(sessionMiddleware)
 app.use(express.static(path.join(__dirname, '../public')))
 

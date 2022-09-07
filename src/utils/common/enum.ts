@@ -28,6 +28,7 @@ export enum OrderStatus {
     NotConfirmed = 'NOT_CONFIRMED',
     Pending = 'PENDING',
     Completed = 'COMPLETED',
+    Canceled = 'CANCELED',
 }
 
 export enum PaymentStatus {

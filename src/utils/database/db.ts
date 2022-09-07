@@ -20,7 +20,7 @@ export class DatabaseConnection {
             database: MYSQL_DATABASE,
             entities: [ENTITIES_PATH],
             synchronize: true,
-            logging: ['query', 'error'],
+            // logging: ['query', 'error'],
         })
         this.repositories = {}
         this.entityManager = this.dataSource.manager

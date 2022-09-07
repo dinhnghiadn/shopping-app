@@ -1,15 +1,15 @@
 import { EntityManager, Repository } from 'typeorm'
 import { Order } from '../../models/entities/Order.entity'
 import { User } from '../../models/entities/User.entity'
-import { OrderStatus, PaymentMethod, PaymentStatus } from '../../utils/common/enum'
-import { sendPaymentEmail } from '../../utils/common/email'
+import { OrderStatus, PaymentMethod } from '../../utils/common/enum'
+import { sendPaymentEmail, sendReminderEmail } from '../../utils/common/email'
 import { Product } from '../../models/entities/Product.entity'
 import Stripe from 'stripe'
 import * as jwt from 'jsonwebtoken'
-import { JwtPayload } from 'jsonwebtoken'
 import { ErrorResponse, SuccessResponse } from '../../utils/common/interfaces'
+import * as cron from 'cron'
 
-const { HOST, PORT, JWT_SECRET } = process.env
+const { HOST, PORT, JWT_SECRET, STRIPE_SIGNIN_SECRET } = process.env
 
 export class OrderService {
     constructor(
@@ -18,11 +18,13 @@ export class OrderService {
         public userRepository: Repository<User>,
         private entityManager: EntityManager
     ) {}
+
     stripe = new Stripe(process.env.STRIPE_KEY as string, { apiVersion: '2022-08-01' })
 
     async complete(
         orderId: number,
-        user: User
+        user: User,
+        sig: String
     ): Promise<SuccessResponse | ErrorResponse> {
         try {
             let order = await this.orderRepository
@@ -39,11 +41,14 @@ export class OrderService {
                     message: 'Order not found!',
                 }
             }
-            if (order.status !== OrderStatus.NotConfirmed) {
+            if (
+                order.status === OrderStatus.Pending ||
+                order.status === OrderStatus.Completed
+            ) {
                 return {
                     success: false,
                     status: 400,
-                    message: 'Order must be in not confirmed state!',
+                    message: 'Order must be in not confirmed state or canceled!',
                 }
             }
             const products: Product[] = []
@@ -65,10 +70,10 @@ export class OrderService {
                                 message: `Exceed product ${product.name} quantity in order. Please try again !`,
                             }
                         }
-                        // product.quantity = product.quantity - orderProduct.quantity
+                        product.quantity = product.quantity - orderProduct.quantity
                         products.push(product)
                     }
-                    // await transactionalEntityManager.save(products)
+                    await transactionalEntityManager.save(products)
                     //TODO : add route to edit items in order (after quality check fail)
                     if (order!.paymentMethod === PaymentMethod.Cash) {
                         if (!user.profile) {
@@ -79,10 +84,6 @@ export class OrderService {
                             }
                         }
                     } else {
-                        const payload = { orderId: order!.id }
-                        const orderToken = jwt.sign(payload, JWT_SECRET as string, {
-                            expiresIn: '7d',
-                        })
                         const session = await this.stripe.checkout.sessions.create({
                             payment_method_types: ['card'],
                             line_items: order!.products.map((item) => {
@@ -101,20 +102,26 @@ export class OrderService {
                                 }
                             }),
                             mode: 'payment',
-                            //TODO: add endpoint for complete order
-                            success_url: `http://${HOST}:${PORT}/order/success-payment?token=${orderToken}`,
-                            cancel_url: `http://${HOST}:${PORT}/order/cancel-payment?token=${orderToken}`,
+                            success_url: `http://${HOST}:${PORT}/order/success-payment?orderId=${
+                                order!.id
+                            }&sessionId={CHECKOUT_SESSION_ID}`,
+                            cancel_url: `http://${HOST}:${PORT}/order/cancel-payment?orderId=${
+                                order!.id
+                            }&sessionId={CHECKOUT_SESSION_ID}`,
+                            expires_at: Math.round(Date.now() / 1000) + 1800,
+                            after_expiration: {
+                                recovery: { enabled: true },
+                            },
                         })
                         paymentUrl = session.url as string
                     }
-                    order!.status = OrderStatus.Pending
+                    // order!.status = OrderStatus.Pending
                     order = await transactionalEntityManager.save(order)
                     await sendPaymentEmail(user.email, order!, paymentUrl)
                 } catch (e) {
                     throw new Error('Something went wrong!...')
                 }
             })
-
             return {
                 success: true,
                 status: 200,
@@ -132,11 +139,12 @@ export class OrderService {
         }
     }
 
-    async successPayment(token: string): Promise<SuccessResponse | ErrorResponse> {
+    async successPayment(
+        id: number,
+        sessionId: string
+    ): Promise<SuccessResponse | ErrorResponse> {
         try {
-            const decode = jwt.verify(token, JWT_SECRET as string)
-            const orderId: number = parseInt((decode as JwtPayload)['orderId'])
-            let order = await this.orderRepository.findOne({ where: { id: orderId } })
+            let order = await this.orderRepository.findOne({ where: { id } })
             if (!order) {
                 return {
                     success: false,
@@ -144,24 +152,13 @@ export class OrderService {
                     message: 'Order not found!',
                 }
             }
-            const products: Product[] = []
             await this.entityManager.transaction(async (transactionalEntityManager) => {
                 try {
                     order!.paymentDate = order!.orderDate
-                    order!.status = OrderStatus.Completed
+                    // order!.status = OrderStatus.Completed
                     order = await transactionalEntityManager.save(order!)
-                    for (const orderProduct of order!.products) {
-                        const product = await transactionalEntityManager.findOneOrFail(
-                            Product,
-                            {
-                                where: { id: orderProduct.productId },
-                            }
-                        )
-                        product.quantity = product.quantity - orderProduct.quantity
-                        products.push(product)
-                    }
-                    await transactionalEntityManager.save(products)
                 } catch (e) {
+                    console.log(e)
                     throw new Error('Something went wrong!...')
                 }
             })
@@ -181,10 +178,11 @@ export class OrderService {
         }
     }
 
-    async cancelPayment(token: string): Promise<SuccessResponse | ErrorResponse> {
-        const decode = jwt.verify(token, JWT_SECRET as string)
-        const orderId: number = parseInt((decode as JwtPayload)['orderId'])
-        let order = await this.orderRepository.findOne({ where: { id: orderId } })
+    async cancelPayment(
+        id: number,
+        sessionId: string
+    ): Promise<SuccessResponse | ErrorResponse> {
+        let order = await this.orderRepository.findOne({ where: { id } })
         if (!order) {
             return {
                 success: false,
@@ -192,12 +190,65 @@ export class OrderService {
                 message: 'Order not found!',
             }
         }
-        order = await this.orderRepository.save(order)
+        const products: Product[] = []
+        await this.entityManager.transaction(async (transactionalEntityManager) => {
+            order!.status = OrderStatus.Canceled
+            for (const orderProduct of order!.products) {
+                const product = await transactionalEntityManager.findOneOrFail(Product, {
+                    where: { id: orderProduct.productId },
+                })
+                product.quantity = product.quantity + orderProduct.quantity
+                products.push(product)
+            }
+            await transactionalEntityManager.save(products)
+            order = await this.orderRepository.save(order!)
+            const session = await this.stripe.checkout.sessions.expire(sessionId)
+        })
+
         return {
             success: true,
             status: 200,
             message: 'Payment is cancel!',
             resource: order,
+        }
+    }
+
+    async orderResultHandler(
+        payload: string,
+        sig: string
+    ): Promise<SuccessResponse | ErrorResponse> {
+        try {
+            let event = this.stripe.webhooks.constructEvent(
+                payload,
+                sig,
+                STRIPE_SIGNIN_SECRET as string
+            )
+
+            if (event.type === 'checkout.session.completed') {
+                console.log('hook is ok')
+                const session = event.data.object
+                console.log(session)
+                return {
+                    success: true,
+                    status: 200,
+                    message: 'Payment is complete!',
+                    resource: session,
+                }
+            }
+            return {
+                success: false,
+                status: 500,
+                message: 'Error occur',
+            }
+        } catch (e) {
+            console.log(e)
+            let message = 'Unknown Error'
+            if (e instanceof Error) message = e.message
+            return {
+                success: false,
+                status: 400,
+                message,
+            }
         }
     }
 }
