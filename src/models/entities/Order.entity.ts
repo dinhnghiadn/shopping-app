@@ -4,13 +4,17 @@ import {
     BeforeUpdate,
     Column,
     Entity,
+    JoinColumn,
     ManyToOne,
     OneToMany,
+    OneToOne,
     PrimaryGeneratedColumn,
 } from 'typeorm'
 import { User } from './User.entity'
-import { OrderStatus, PaymentMethod, PaymentStatus } from '../../utils/common/enum'
+import { OrderStatus, PaymentMethod } from '../../utils/common/enum'
 import { OrderProduct } from './OrderProduct.entity'
+import { Cart } from './Cart.entity'
+import { PaymentSession } from './PaymentSession.entity'
 
 @Entity('orders')
 export class Order extends BaseEntity {
@@ -20,7 +24,11 @@ export class Order extends BaseEntity {
     @Column({ type: 'enum', enum: PaymentMethod, default: PaymentMethod.Cash })
     paymentMethod: PaymentMethod
 
-    @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.NotConfirmed })
+    @Column({
+        type: 'enum',
+        enum: OrderStatus,
+        default: OrderStatus.NotConfirmed,
+    })
     status: OrderStatus
 
     @Column({ nullable: true })
@@ -40,6 +48,12 @@ export class Order extends BaseEntity {
 
     @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.order, { eager: true })
     products: OrderProduct[]
+
+    @OneToOne(() => PaymentSession, (session) => session.order, {
+        cascade: true,
+        eager: true,
+    })
+    paymentSession: PaymentSession
 
     getTotalAmount(): void {
         if (this.products) {

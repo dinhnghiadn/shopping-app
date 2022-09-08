@@ -28,7 +28,8 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
         dataSource.getRepository('Product'),
         dataSource.getRepository('User'),
         dataSource.getRepository('Order'),
-        dataSource.getRepository('OrderProduct')
+        dataSource.getRepository('OrderProduct'),
+        dataSource.entityManager
     )
     const cartController = new CartController(cartService)
     new CartRoutes(router, cartController).getRoutes()
@@ -39,6 +40,7 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
     //Order
     const orderService = new OrderService(
         dataSource.getRepository('Order'),
+        dataSource.getRepository('PaymentSession'),
         dataSource.getRepository('Product'),
         dataSource.getRepository('User'),
         dataSource.entityManager
@@ -60,7 +62,8 @@ export const wrap = (dataSource: DatabaseConnection, router: Router) => {
     const userService = new UserService(
         dataSource.getRepository('User'),
         dataSource.getRepository('Image'),
-        dataSource.getRepository('Order')
+        dataSource.getRepository('Order'),
+        dataSource.entityManager
     )
 
     const userController = new UserController(userService)

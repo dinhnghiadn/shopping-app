@@ -32,7 +32,7 @@ export class UserRoutes {
             '/user/profile',
             (req: Request, res: Response, next: NextFunction) =>
                 auth(req, res, next, this.userController.userService.userRepository),
-            (req: Request, res: Response) => this.userController.editProfile(req, res)
+            (req: Request, res: Response) => this.userController.addProfile(req, res)
         )
         this.router.get(
             '/user/avatar',

@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm'
+import { EntityManager, Repository } from 'typeorm'
 import { Cart } from '../../models/entities/Cart.entity'
 import { Request } from 'express'
 import { User } from '../../models/entities/User.entity'
@@ -20,7 +20,8 @@ export class CartService {
         public productRepository: Repository<Product>,
         public userRepository: Repository<User>,
         public orderRepository: Repository<Order>,
-        public orderProductRepository: Repository<OrderProduct>
+        public orderProductRepository: Repository<OrderProduct>,
+        private entityManager: EntityManager
     ) {}
 
     async viewCart(req: Request): Promise<SuccessResponse | ErrorResponse> {
@@ -53,69 +54,53 @@ export class CartService {
         user: User
     ): Promise<SuccessResponse | ErrorResponse> {
         try {
-            if (data.quantity < 0) {
-                return {
-                    success: false,
-                    status: 400,
-                    message: 'Quantity must be a positive number!',
-                }
-            }
             if (!user.cart) {
                 const cart = new Cart()
                 user.cart = cart
                 await this.userRepository.save(user)
             }
-            const existProduct = await this.cartProductRepository
-                .createQueryBuilder('cartProduct')
-                .leftJoinAndSelect(
-                    'cartProduct.product',
-                    'product',
-                    'cartProduct.productId = product.id'
-                )
-                .where('cartProduct.productId = :id', { id: data.productId })
-                .andWhere('cartProduct.cartId = :cartId', { cartId: user.cart.id })
-                .getOne()
+            const existProduct = await this.cartProductRepository.findOne({
+                where: { productId: data.productId, cartId: user.cart.id },
+            })
             const product = await this.productRepository.findOneOrFail({
                 where: { id: data.productId },
             })
-            if (!existProduct) {
-                const addedData = this.cartProductRepository.create({
-                    productId: data.productId,
-                    quantity: data.quantity,
-                    cartId: user.cart.id,
-                })
-
-                if (product.quantity < data.quantity) {
-                    return {
-                        success: false,
-                        status: 400,
-                        message: `Exceed product ${product.name} quantity. Please change your item 's quantity !`,
-                    }
+            if (product.quantity < data.quantity) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: `Exceed product ${product.name} quantity. Please change your item 's quantity !`,
                 }
-                addedData.product = product
-                await this.cartProductRepository.save(addedData)
-            } else {
-                existProduct.quantity = existProduct.quantity + data.quantity
-                if (product.quantity < existProduct.quantity) {
-                    return {
-                        success: false,
-                        status: 400,
-                        message: `Exceed product ${product.name} quantity in cart. Please change your item 's quantity !`,
-                    }
-                }
-                await this.cartProductRepository.save(existProduct)
             }
-            const updatedCartUser = await this.userRepository.findOneOrFail({
-                where: { id: user.id },
-                relations: { cart: true },
+            await this.entityManager.transaction(async (transactionalEntityManager) => {
+                try {
+                    if (!existProduct) {
+                        const addedData = this.cartProductRepository.create({
+                            productId: data.productId,
+                            quantity: data.quantity,
+                            cartId: user.cart.id,
+                        })
+                        addedData.product = product
+                        await this.cartProductRepository.save(addedData)
+                    } else {
+                        existProduct.quantity = data.quantity
+                        await this.cartProductRepository.save(existProduct)
+                    }
+                    user = await this.userRepository.findOneOrFail({
+                        where: { id: user.id },
+                    })
+                    user.cart.getTotalAmount()
+                    await this.userRepository.save(user)
+                } catch (e) {
+                    console.log(e)
+                    throw new Error('Something went wrong!...')
+                }
             })
-            updatedCartUser.cart.getTotalAmount()
-            await this.userRepository.save(updatedCartUser)
             return {
                 success: true,
                 status: 200,
                 message: 'Add items to cart successfully!',
-                resource: updatedCartUser.cart,
+                resource: user.cart,
             }
         } catch (e) {
             return {
@@ -127,17 +112,10 @@ export class CartService {
     }
 
     async removeItems(
-        data: EditItems,
+        productId: number,
         user: User
     ): Promise<SuccessResponse | ErrorResponse> {
         try {
-            if (data.quantity > 0) {
-                return {
-                    success: false,
-                    status: 400,
-                    message: 'Quantity must be a negative number!',
-                }
-            }
             if (!user.cart) {
                 return {
                     success: false,
@@ -145,47 +123,30 @@ export class CartService {
                     message: 'User dont have cart',
                 }
             }
-            const existProduct = await this.cartProductRepository
-                .createQueryBuilder('cartProduct')
-                .leftJoinAndSelect(
-                    'cartProduct.product',
-                    'product',
-                    'cartProduct.productId = product.id'
-                )
-                .where('cartProduct.productId = :id', { id: data.productId })
-                .andWhere('cartProduct.cartId = :cartId', { cartId: user.cart.id })
-                .getOne()
-            if (!existProduct) {
-                return {
-                    success: false,
-                    status: 404,
-                    message: 'Product not found in cart!',
-                }
-            } else {
-                if (Math.abs(data.quantity) > existProduct.quantity) {
-                    return {
-                        success: false,
-                        status: 400,
-                        message: 'Cannot delete items exceed the' + ' quantity in cart!',
+            await this.entityManager.transaction(
+                async (transactionalEntityManager: EntityManager) => {
+                    try {
+                        await transactionalEntityManager.delete(CartProduct, {
+                            productId,
+                            cartId: user.cart.id,
+                        })
+                        user = await transactionalEntityManager.findOneOrFail(User, {
+                            where: { id: user.id },
+                        })
+                        user.cart.getTotalAmount()
+                        user = await transactionalEntityManager.save(user)
+                    } catch (e) {
+                        console.log(e)
+                        throw new Error('Something went wrong!...')
                     }
                 }
-                existProduct.quantity = existProduct.quantity + data.quantity
-                if (existProduct.quantity === 0) {
-                    await this.cartProductRepository.remove(existProduct)
-                } else await this.cartProductRepository.save(existProduct)
-            }
+            )
 
-            const updatedCartUser = await this.userRepository.findOneOrFail({
-                where: { id: user.id },
-                relations: { cart: true },
-            })
-            updatedCartUser.cart.getTotalAmount()
-            await this.userRepository.save(updatedCartUser)
             return {
                 success: true,
                 status: 200,
                 message: 'Remove items in cart successfully!',
-                resource: updatedCartUser.cart,
+                resource: user.cart,
             }
         } catch (e) {
             return {
@@ -213,7 +174,7 @@ export class CartService {
             order = await this.orderRepository.save(order)
             user = await this.userRepository.save(user)
             dataArray.forEach((data: CheckoutItems) => {
-                user.cart.products.forEach(async (cartProduct) => {
+                user.cart.products.forEach(async (cartProduct: CartProduct) => {
                     if (cartProduct.productId === data.productId) {
                         //add item to order
                         const product = await this.productRepository.findOneOrFail({
@@ -271,7 +232,7 @@ export class CartService {
             onTick: async () => {
                 //Remind cart items for user
                 const users = await this.userRepository.find()
-                users.forEach((user) => {
+                users.forEach((user: User) => {
                     if (user.cart && user.cart.products.length !== 0) {
                         sendReminderEmail(user.email, user.cart)
                     }

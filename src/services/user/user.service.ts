@@ -1,5 +1,5 @@
 import { User } from '../../models/entities/User.entity'
-import { Repository } from 'typeorm'
+import { EntityManager, Repository } from 'typeorm'
 import { SignUp } from '../../models/dto/sign-up'
 import * as jwt from 'jsonwebtoken'
 import { JwtPayload } from 'jsonwebtoken'
@@ -30,7 +30,8 @@ export class UserService {
     constructor(
         public userRepository: Repository<User>,
         public imageRepository: Repository<Image>,
-        public orderRepository: Repository<Order>
+        public orderRepository: Repository<Order>,
+        private entityManager: EntityManager
     ) {}
 
     async createUser(data: SignUp): Promise<User> {
@@ -263,7 +264,7 @@ export class UserService {
         }
     }
 
-    async editProfile(
+    async addProfile(
         data: Profile,
         user: User
     ): Promise<SuccessResponse | ErrorResponse> {

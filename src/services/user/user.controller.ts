@@ -79,7 +79,7 @@ export class UserController {
         res.status(result.status).json(result)
     }
 
-    async editProfile(req: Request, res: Response): Promise<void> {
+    async addProfile(req: Request, res: Response): Promise<void> {
         const { user, token, ...profile } = req.body
         const errors = await validate(plainToInstance(EditProfile, profile))
         if (errors.length > 0) {
@@ -87,7 +87,7 @@ export class UserController {
             res.status(400).send(messages)
             return
         }
-        const result = await this.userService.editProfile(profile, user)
+        const result = await this.userService.addProfile(profile, user)
         res.status(result.status).json(result)
     }
 
