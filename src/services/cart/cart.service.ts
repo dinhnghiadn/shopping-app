@@ -12,6 +12,7 @@ import { OrderProduct } from '../../models/entities/OrderProduct.entity'
 import { PaymentMethod } from '../../utils/common/enum'
 import * as cron from 'cron'
 import { sendReminderEmail } from '../../utils/common/email'
+import { throwError } from '../../utils/common/error'
 
 export class CartService {
     constructor(
@@ -75,22 +76,22 @@ export class CartService {
             await this.entityManager.transaction(async (transactionalEntityManager) => {
                 try {
                     if (!existProduct) {
-                        const addedData = this.cartProductRepository.create({
+                        const addedData = transactionalEntityManager.create(CartProduct, {
                             productId: data.productId,
                             quantity: data.quantity,
                             cartId: user.cart.id,
                         })
                         addedData.product = product
-                        await this.cartProductRepository.save(addedData)
+                        await transactionalEntityManager.save(addedData)
                     } else {
                         existProduct.quantity = data.quantity
-                        await this.cartProductRepository.save(existProduct)
+                        await transactionalEntityManager.save(existProduct)
                     }
-                    user = await this.userRepository.findOneOrFail({
+                    user = await transactionalEntityManager.findOneOrFail(User, {
                         where: { id: user.id },
                     })
                     user.cart.getTotalAmount()
-                    await this.userRepository.save(user)
+                    await transactionalEntityManager.save(user)
                 } catch (e) {
                     console.log(e)
                     throw new Error('Something went wrong!...')
@@ -158,6 +159,7 @@ export class CartService {
     }
 
     async checkOut(dataArray: CheckoutItems[], paymentMethod: PaymentMethod, user: User) {
+        let errorMessage: string = ''
         try {
             if (!user.cart || user.cart.products.length === 0) {
                 return {
@@ -167,60 +169,78 @@ export class CartService {
                         'User dont have cart or cart does not contain' + ' any items!',
                 }
             }
-            //TODO: add transaction
-            let order: Order = new Order()
-            order.products = []
-            user.orders.push(order)
-            order = await this.orderRepository.save(order)
-            user = await this.userRepository.save(user)
-            dataArray.forEach((data: CheckoutItems) => {
-                user.cart.products.forEach(async (cartProduct: CartProduct) => {
-                    if (cartProduct.productId === data.productId) {
-                        //add item to order
-                        const product = await this.productRepository.findOneOrFail({
-                            where: { id: data.productId },
-                        })
-                        if (product.quantity < cartProduct.quantity) {
-                            return {
-                                success: false,
-                                status: 400,
-                                message: `Exceed product ${product.name} quantity in cart. Please change your item 's quantity !`,
+
+            let order: Order = this.orderRepository.create({
+                products: [],
+                userId: user.id,
+                orderDate: new Date(),
+                paymentMethod: paymentMethod,
+            })
+            await this.entityManager.transaction(
+                async (transactionalEntityManager: EntityManager) => {
+                    try {
+                        order = await transactionalEntityManager.save(order)
+                        for (const data of dataArray) {
+                            for (const cartProduct of user.cart.products) {
+                                if (cartProduct.productId === data.productId) {
+                                    //add item to order
+                                    const product =
+                                        await transactionalEntityManager.findOneOrFail(
+                                            Product,
+                                            {
+                                                where: { id: data.productId },
+                                            }
+                                        )
+                                    if (product.quantity < cartProduct.quantity) {
+                                        errorMessage = `Exceed product ${product.name} quantity in cart. Please change your item 's quantity !`
+                                        throwError(errorMessage)
+                                    }
+                                    let checkout = transactionalEntityManager.create(
+                                        OrderProduct,
+                                        {
+                                            productId: cartProduct.productId,
+                                            quantity: cartProduct.quantity,
+                                            orderId: order.id,
+                                            product: product,
+                                        }
+                                    )
+                                    checkout = await transactionalEntityManager.save(
+                                        checkout
+                                    )
+                                    order.products.push(checkout)
+                                }
                             }
                         }
-                        const checkout = this.orderProductRepository.create({
-                            productId: cartProduct.productId,
-                            quantity: cartProduct.quantity,
-                            orderId: order.id,
+                        order.getTotalAmount()
+                        order = await transactionalEntityManager.save(order)
+                        await transactionalEntityManager.delete(CartProduct, {
+                            cartId: user.cart.id,
                         })
-                        checkout.product = product
-                        order.products.push(checkout)
-                        await this.orderProductRepository.save(checkout)
+                        await transactionalEntityManager.update(
+                            Cart,
+                            { id: user.cart.id },
+                            {
+                                totalAmount: 0,
+                            }
+                        )
+                    } catch (e) {
+                        console.log(e)
+                        throw new Error('Something went wrong!...')
                     }
-                })
-            })
-            order = await this.orderRepository.save(order)
-            order.getTotalAmount()
-            order.orderDate = new Date()
-            order.paymentMethod = paymentMethod
-            const addedOrder = await this.orderRepository.save(order)
-            await this.cartProductRepository.delete({ cartId: user.cart.id })
-            await this.cartRepository.update(
-                { id: user.cart.id },
-                {
-                    totalAmount: 0,
                 }
             )
+
             return {
                 success: true,
                 status: 200,
                 message: 'Checkout cart to order successfully!',
-                resource: addedOrder,
+                resource: order,
             }
         } catch (e) {
             return {
                 success: false,
                 status: 500,
-                message: 'Error occur!',
+                message: errorMessage,
             }
         }
     }

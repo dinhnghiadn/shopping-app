@@ -8,6 +8,7 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    JoinColumn,
     OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
@@ -31,6 +32,7 @@ export class Cart extends BaseEntity {
     totalAmount: number
 
     @OneToOne(() => User, (user) => user.cart, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
     user: User
 
     @OneToMany(() => CartProduct, (cartProduct) => cartProduct.cart, { eager: true })

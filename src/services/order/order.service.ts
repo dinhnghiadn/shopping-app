@@ -79,7 +79,7 @@ export class OrderService {
                             }
                         )
                         if (product.quantity < orderProduct.quantity) {
-                            errorMessage = `Exceed product ${product.name} quantity in order. Please try again !`
+                            errorMessage = `Exceed product ${product.name} quantity in order (${product.quantity}). Please try again !`
                             throwError(errorMessage)
                         }
                         product.quantity = product.quantity - orderProduct.quantity

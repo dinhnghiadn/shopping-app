@@ -43,10 +43,17 @@ export class Order extends BaseEntity {
     @Column({ default: 0 })
     totalAmount: number
 
+    @Column()
+    userId: number
+
     @ManyToOne(() => User, (user) => user.orders, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
     user: User
 
-    @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.order, { eager: true })
+    @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.order, {
+        cascade: true,
+        eager: true,
+    })
     products: OrderProduct[]
 
     @OneToOne(() => PaymentSession, (session) => session.order, {
