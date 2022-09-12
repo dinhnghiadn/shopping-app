@@ -1,38 +1,35 @@
 import {
-    BaseEntity,
-    Column,
-    Entity, JoinColumn,
-    OneToOne,
-    PrimaryGeneratedColumn
-} from "typeorm";
-import {IsEmail} from "class-validator";
-import { Gender } from "../../utils/common/enum";
-import {User} from "./User.entity";
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Gender } from '../../utils/common/enum';
+import { User } from './User.entity';
 
 @Entity('profiles')
 export class Profile extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    fullName: string
+  @Column()
+  fullName: string;
 
-    @Column()
-    phone: string
+  @Column()
+  phone: string;
 
-    @Column()
-    birthday: string
+  @Column()
+  birthday: string;
 
-    @Column({type: 'enum', enum: Gender})
-    gender: Gender
+  @Column({ type: 'enum', enum: Gender })
+  gender: Gender;
 
+  @Column()
+  address: string;
 
-    @Column()
-    address: string
-
-
-    @OneToOne(() => User, (user) => user.profile,{onDelete:'CASCADE'})
-    @JoinColumn({name: 'userId'})
-    user: User
-
+  @OneToOne(() => User, (user) => user.profile, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 }

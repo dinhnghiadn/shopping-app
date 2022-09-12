@@ -1,7 +1,7 @@
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcrypt';
 
-const saltRounds = 8
+const saltRounds = 8;
 
-export const hashPassword = (password: string) => {
-    return bcrypt.hash(password, saltRounds)
-}
+export const hashPassword = async (password: string): Promise<string> => {
+  return await bcrypt.hash(password, saltRounds);
+};

@@ -1,7 +1,7 @@
-import {IsDefined, IsNotEmpty} from "class-validator";
+import { IsDefined, IsNotEmpty } from 'class-validator';
 
 export class ForgotPassword {
-    @IsDefined()
-    @IsNotEmpty()
-    readonly email:string
+  @IsDefined()
+  @IsNotEmpty()
+  readonly email: string;
 }

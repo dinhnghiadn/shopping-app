@@ -1,51 +1,51 @@
 import {
-    BaseEntity,
-    Column,
-    CreateDateColumn,
-    Entity,
-    JoinTable,
-    ManyToMany,
-    OneToMany,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-} from 'typeorm'
-import { Category } from './Category.entity'
-import { OrderProduct } from './OrderProduct.entity'
-import { CartProduct } from './CartProduct.entity'
+  BaseEntity,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Category } from './Category.entity';
+import { OrderProduct } from './OrderProduct.entity';
+import { CartProduct } from './CartProduct.entity';
 
 @Entity('products')
 export class Product extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: number
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name: string
+  @Column()
+  name: string;
 
-    @Column()
-    price: number
+  @Column()
+  price: number;
 
-    @Column()
-    quantity: number
+  @Column()
+  quantity: number;
 
-    @Column()
-    description: string
+  @Column()
+  description: string;
 
-    @CreateDateColumn()
-    createAt: Date
+  @CreateDateColumn()
+  createAt: Date;
 
-    @UpdateDateColumn()
-    updateAt: Date
+  @UpdateDateColumn()
+  updateAt: Date;
 
-    @ManyToMany(() => Category, (category) => category.products, {
-        eager: true,
-        cascade: ['insert', 'update'],
-    })
-    @JoinTable({ name: 'product_category' })
-    categories: Category[]
+  @ManyToMany(() => Category, (category) => category.products, {
+    eager: true,
+    cascade: ['insert', 'update'],
+  })
+  @JoinTable({ name: 'product_category' })
+  categories: Category[];
 
-    @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.product)
-    orders: OrderProduct[]
+  @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.product)
+  orders: OrderProduct[];
 
-    @OneToMany(() => CartProduct, (cartProduct) => cartProduct.product)
-    carts: CartProduct[]
+  @OneToMany(() => CartProduct, (cartProduct) => cartProduct.product)
+  carts: CartProduct[];
 }

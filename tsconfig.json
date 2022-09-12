@@ -7,9 +7,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
-    "typeRoots": [
-      "./src/utils/typing-stubs",
-      "./node_modules/@types"
-    ]
+    "typeRoots": ["./src/utils/typing-stubs", "./node_modules/@types"]
   }
 }
