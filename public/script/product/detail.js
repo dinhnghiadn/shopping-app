@@ -3,6 +3,8 @@ $(function () {
     e.preventDefault();
     const data = new FormData(document.getElementById('my-form'));
     const id = data.get('id');
+    const categoryId = data.get('categoryId[]');
+    console.log(categoryId);
     $.ajax({
       type: 'put',
       url: '/admin/product/' + id,

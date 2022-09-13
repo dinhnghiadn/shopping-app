@@ -259,7 +259,7 @@ export class AdminService {
       let savedImage: Image;
       await this.entityManager.transaction(async (transactionalEntityManager) => {
         try {
-          category = await transactionalEntityManager.save(category);
+          category = await transactionalEntityManager.save(Category, category);
           const uploadResult = await uploadImage(file, 'categories');
           if (isSuccessResponse(uploadResult)) {
             const imageUrl: string = uploadResult.resource as string;
@@ -268,7 +268,7 @@ export class AdminService {
               belongTo: Owner.Category,
               ownerId: category.id,
             });
-            savedImage = await transactionalEntityManager.save(image);
+            savedImage = await transactionalEntityManager.save(Image, image);
           } else {
             throwError(`Something went wrong with upload image process !`);
           }
@@ -323,14 +323,14 @@ export class AdminService {
               if (existImage) {
                 await deleteImage(existImage.url);
                 existImage.url = imageUrl;
-                await transactionalEntityManager.save(existImage);
+                await transactionalEntityManager.save(Image, existImage);
               } else {
                 const image = transactionalEntityManager.create(Image, {
                   url: imageUrl,
                   belongTo: Owner.Category,
                   ownerId: existCategory.id,
                 });
-                await transactionalEntityManager.save(image);
+                await transactionalEntityManager.save(Image, image);
               }
             }
           }
@@ -394,9 +394,9 @@ export class AdminService {
         try {
           if (existImage) {
             await deleteImage(existImage.url);
-            await transactionalEntityManager.remove(existImage);
+            await transactionalEntityManager.remove(Image, existImage);
           }
-          await transactionalEntityManager.remove(existCategory);
+          await transactionalEntityManager.remove(Category, existCategory);
         } catch (e) {
           console.log(e);
           throw new Error('Something went wrong!...');
@@ -494,10 +494,10 @@ export class AdminService {
       for (const category of product.categories) {
         category.numberOfProducts++;
       }
-      const savedImages: Image[] = [];
+      let savedImages: Image[] = [];
       await this.entityManager.transaction(async (transactionalEntityManager) => {
         try {
-          product = await transactionalEntityManager.save(product);
+          product = await transactionalEntityManager.save(Product, product);
           for (const file of files) {
             const uploadResult = await uploadImage(file, `products`);
             if (isSuccessResponse(uploadResult)) {
@@ -508,10 +508,11 @@ export class AdminService {
                 primary: false,
                 ownerId: product.id,
               });
-              const savedImage = await transactionalEntityManager.save(image);
-              savedImages.push(savedImage);
+              savedImages.push(image);
             }
           }
+          savedImages[0].primary = true;
+          savedImages = await transactionalEntityManager.save(Image, savedImages);
         } catch (e) {
           console.log(e);
           throw new Error('Something went wrong!...');
@@ -561,8 +562,9 @@ export class AdminService {
             images.forEach((image: Image) => {
               image.primary = image.id === data.thumbnailId;
             });
-            await transactionalEntityManager.save(images);
+            await transactionalEntityManager.save(Image, images);
           }
+
           if (data.categoryId) {
             existProduct.categories = await transactionalEntityManager.findBy(Category, {
               id: In(data.categoryId),
@@ -575,7 +577,8 @@ export class AdminService {
             price: data.price,
             quantity: data.quantity,
           };
-          await transactionalEntityManager.save(dataUpdated);
+          console.log(dataUpdated);
+          await transactionalEntityManager.save(Product, dataUpdated);
         } catch (e) {
           console.log(e);
           throw new Error('Something went wrong!...');
@@ -629,14 +632,14 @@ export class AdminService {
         try {
           if (existImages.length !== 0) {
             await Promise.all(existImages.map((image) => deleteImage(image.url)));
-            await transactionalEntityManager.remove(existImages);
+            await transactionalEntityManager.remove(Image, existImages);
           }
 
           for (const category of existProduct.categories) {
             category.numberOfProducts--;
           }
-          await transactionalEntityManager.save(existProduct);
-          await transactionalEntityManager.remove(existProduct);
+          await transactionalEntityManager.save(Product, existProduct);
+          await transactionalEntityManager.remove(Product, existProduct);
         } catch (e) {
           console.log(e);
           throw new Error('Something went wrong!...');

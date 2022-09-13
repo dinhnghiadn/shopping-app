@@ -156,6 +156,8 @@ export class AdminController {
   async editProduct(req: Request, res: Response): Promise<void> {
     const id: number = parseInt(req.params.id);
     const data = req.body;
+    console.log(data);
+    data.categoryId = data.categoryId.map((id: string) => parseInt(id));
     data.price = parseInt(data.price);
     data.quantity = parseInt(data.quantity);
     data.thumbnailId = parseInt(data.thumbnailId);

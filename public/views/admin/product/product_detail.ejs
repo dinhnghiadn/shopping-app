@@ -54,9 +54,14 @@
                  src="<%=image
                          .url%>">
             <input type="radio"  value="<%=image.id%>"
+            <% if (image.primary) {%>
+                   checked
+                    <%}%>
                    name="thumbnailId" >
             <%})}%>
-
+            <div id = "list-category" class="form-group">
+                <label>Category:</label>
+            </div>
             <div class="form-group">
                 <label>Description:</label>
                 <textarea class="form-control" rows="4" cols="50"
@@ -71,5 +76,21 @@
 </div>
 
 <script src="../../../script/product/detail.js"></script>
+<script>
+    $(function () {
+        $.get('/category/list', function (data) {
+            let productCategories = <%-JSON.stringify(product.categories)%>
+            productCategories = productCategories.map((category)=>category.id)
+            console.log(productCategories);
+            data.resources.forEach((category) => {
+                let sringHtml = `</br><input type="checkbox"
+                    name="categoryId[]"  ${productCategories.includes
+                (category.id) && 'checked'}
+                     value="${category.id}">${category.name}</input>`;
+                $('#list-category').append(sringHtml);
+            });
+        });
+    });
+</script>
 </body>
 </html>

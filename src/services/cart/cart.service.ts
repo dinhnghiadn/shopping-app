@@ -79,16 +79,16 @@ export class CartService {
               cartId: user.cart.id,
             });
             addedData.product = product;
-            await transactionalEntityManager.save(addedData);
+            await transactionalEntityManager.save(CartProduct, addedData);
           } else {
             existProduct.quantity = data.quantity;
-            await transactionalEntityManager.save(existProduct);
+            await transactionalEntityManager.save(CartProduct, existProduct);
           }
           user = await transactionalEntityManager.findOneOrFail(User, {
             where: { id: user.id },
           });
           user.cart.getTotalAmount();
-          await transactionalEntityManager.save(user);
+          await transactionalEntityManager.save(User, user);
         } catch (e) {
           console.log(e);
           throw new Error('Something went wrong!...');
@@ -132,7 +132,7 @@ export class CartService {
               where: { id: user.id },
             });
             user.cart.getTotalAmount();
-            user = await transactionalEntityManager.save(user);
+            user = await transactionalEntityManager.save(User, user);
           } catch (e) {
             console.log(e);
             throw new Error('Something went wrong!...');
@@ -179,7 +179,7 @@ export class CartService {
       await this.entityManager.transaction(
         async (transactionalEntityManager: EntityManager) => {
           try {
-            order = await transactionalEntityManager.save(order);
+            order = await transactionalEntityManager.save(Order, order);
             for (const data of dataArray) {
               for (const cartProduct of user.cart.products) {
                 if (cartProduct.productId === data.productId) {
@@ -200,13 +200,16 @@ export class CartService {
                     orderId: order.id,
                     product: product,
                   });
-                  checkout = await transactionalEntityManager.save(checkout);
+                  checkout = await transactionalEntityManager.save(
+                    OrderProduct,
+                    checkout
+                  );
                   order.products.push(checkout);
                 }
               }
             }
             order.getTotalAmount();
-            order = await transactionalEntityManager.save(order);
+            order = await transactionalEntityManager.save(Order, order);
             await transactionalEntityManager.delete(CartProduct, {
               cartId: user.cart.id,
             });

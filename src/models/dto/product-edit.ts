@@ -10,11 +10,11 @@ export class ProductEdit {
   readonly description?: string;
 
   @IsOptional()
-  @IsPositive()
+  // @IsPositive()
   readonly price?: number;
 
   @IsOptional()
-  @IsPositive()
+  // @IsPositive()
   readonly quantity?: number;
 
   @IsOptional()
