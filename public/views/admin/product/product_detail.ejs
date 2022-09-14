@@ -83,11 +83,11 @@
             productCategories = productCategories.map((category)=>category.id)
             console.log(productCategories);
             data.resources.forEach((category) => {
-                let sringHtml = `</br><input type="checkbox"
+                let stringHtml = `</br><input type="checkbox"
                     name="categoryId[]"  ${productCategories.includes
                 (category.id) && 'checked'}
                      value="${category.id}">${category.name}</input>`;
-                $('#list-category').append(sringHtml);
+                $('#list-category').append(stringHtml);
             });
         });
     });

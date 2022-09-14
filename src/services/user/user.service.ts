@@ -50,7 +50,7 @@ export class UserService {
   async signUp(data: SignUp): Promise<SuccessResponse | ErrorResponse> {
     try {
       const duplicateUsername = await this.findOne(data.username, 'username');
-      if (duplicateUsername === null) {
+      if (duplicateUsername !== null) {
         return {
           success: false,
           status: 400,
@@ -59,7 +59,7 @@ export class UserService {
       }
 
       const duplicateEmail = await this.findOne(data.email, 'email');
-      if (duplicateEmail === null) {
+      if (duplicateEmail !== null) {
         return {
           success: false,
           status: 400,

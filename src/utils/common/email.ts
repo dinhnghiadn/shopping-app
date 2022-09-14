@@ -3,11 +3,11 @@ import { Order } from '../../models/entities/Order.entity';
 import { Cart } from '../../models/entities/Cart.entity';
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp.mailtrap.io',
-  port: 2525,
+  host: 'smtp.gmail.com',
+  port: 465,
   auth: {
-    user: process.env.MAILTRAP_USER,
-    pass: process.env.MAILTRAP_PASSWORD,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APPLICATION_PASSWORD,
   },
 });
 
@@ -17,7 +17,7 @@ export const sendVerificationEmail = async (
 ): Promise<void> => {
   try {
     await transporter.sendMail({
-      from: '"Shopping app" <shopping-app@example.com>',
+      from: '"Shopping app" <nghiagbf31@gmail.com>',
       to: email,
       subject: 'Account Verification',
       text: 'Click on the link below to verify your account: ' + url,
@@ -41,7 +41,7 @@ export const sendResetPasswordEmail = async (
 ): Promise<void> => {
   try {
     await transporter.sendMail({
-      from: '"Shopping app" <shopping-app@example.com>',
+      from: '"Shopping app" <nghiagbf31@gmail.com>',
       to: email,
       subject: 'Password Reset',
       text: 'Click on the link below to verify your account: ' + url,
@@ -65,7 +65,7 @@ export const sendNewPasswordEmail = async (
 ): Promise<void> => {
   try {
     await transporter.sendMail({
-      from: '"Shopping app" <shopping-app@example.com>',
+      from: '"Shopping app" <nghiagbf31@gmail.com>',
       to: email,
       subject: 'New Password',
       text: 'Here is your new password, please save it: ' + password,
@@ -92,7 +92,7 @@ export const sendPaymentEmail = async (
             `;
     }
     await transporter.sendMail({
-      from: '"Shopping app" <shopping-app@example.com>',
+      from: '"Shopping app" <nghiagbf31@gmail.com>',
       to: email,
       subject: 'Your payment was successfully processed',
       text: text + `\n- Thank you for your billing`,
@@ -116,7 +116,7 @@ export const sendReminderEmail = async (email: string, cart: Cart): Promise<void
   });
   try {
     await transporter.sendMail({
-      from: '"Shopping app" <shopping-app@example.com>',
+      from: '"Shopping app" <nghiagbf31@gmail.com>',
       to: email,
       subject: 'You items in your cart...',
       html: `Hi there, you have items in your cart. Here is the detail:
